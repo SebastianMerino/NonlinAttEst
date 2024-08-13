@@ -1,17 +1,18 @@
 clear; close all; clc;
 addpath(genpath(pwd))
-
+baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
+    'BA_AC_joint\rfdata'];
 fileSam = 'rf_fnum3_PWNE_samBA12_att0p18f2_nc10_400kPa';
 fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
 
 % Hyperparameters
 zIni = 0.3; zFin = 5.5;
 freqC = 5; freqTol = 2;
-blockSize = 10; overlap = 0.8;
+blockSize = 20; overlap = 0.8;
 
 %% Sample
 % Loading and cropping
-load(fileSam, 'rf1','rf2','x','z','fs')
+load(fullfile(baseDir,fileSam))
 idz = z>zIni/100 & z<zFin/100;
 z = z(idz);
 rf1 = rf1(idz,:,1);
@@ -28,7 +29,7 @@ wl = 1540/freqC/1e6;
 
 %% Reference
 % Loading and cropping
-load(fileRef, 'rf1','rf2','x','z','fs')
+load(fullfile(baseDir,fileRef))
 z = z(idz);
 rf1 = rf1(idz,:,1);
 rf2 = rf2(idz,:,1);
@@ -55,6 +56,7 @@ BA = 2*(betaS-1);
 cm = 100;
 figure,
 imagesc(xP*cm,zP*cm,BA, [6 14])
+title(sprintf("B/A = %.2f \\pm %.2f",mean(BA(:)),std(BA(:))))
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
 axis image
