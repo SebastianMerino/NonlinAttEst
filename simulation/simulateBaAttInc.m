@@ -1,10 +1,8 @@
 function simulateBaAttInc(baseDir)
-
-% Simulating B-mode Ultrasound Images Example
-clearvars; close all; clc;
+%% Simulating B-mode Ultrasound Images Example
+setup;
 % set to 'single' or 'gpuArray-single' to speed up computations
-DATA_CAST       = 'single';     
-
+DATA_CAST       = 'gpuArray-single';     
 simuNames = {'BaAttInc1','BaAttInc2','BaAttInc3'};
 
 for iSim = 1:length(simuNames)
@@ -18,12 +16,9 @@ pml_y_size = 10;                % [grid points]
 pml_z_size = 10;                % [grid points]
 
 % set total number of grid points not including the PML
-% Nx = 1024 - 2 * pml_x_size;      % [grid points]
-% Ny = 675 - 2 * pml_y_size;      % [grid points]
-% Nz = 160 - 2 * pml_z_size;      % [grid points]
-Nx = 256 - 2 * pml_x_size;      % [grid points]
+Nx = 1024 - 2 * pml_x_size;      % [grid points]
 Ny = 675 - 2 * pml_y_size;      % [grid points]
-Nz = 40 - 2 * pml_z_size;      % [grid points]
+Nz = 160 - 2 * pml_z_size;      % [grid points]
 
 % calculate the spacing between the grid points
 dx = 0.06e-3;
@@ -43,11 +38,21 @@ stdDensity = 2/100;
 medium.alpha_power = 2;
 
 % Properties of the inclusion
-BaBack = 6; BaInc = 9;
-alphaBack = 0.1; alphaInc = 0.18;
 radius_disk = (9)*1e-3;
-% center_depth = 22.5e-3;
-center_depth = 2e-3;
+center_depth = 22.5e-3;
+switch iSim
+    case 1
+        BaBack = 6; BaInc = 9;
+        alphaBack = 0.1; alphaInc = 0.1;
+
+    case 2
+        BaBack = 9; BaInc = 9;
+        alphaBack = 0.1; alphaInc = 0.18;
+
+    case 3
+        BaBack = 6; BaInc = 9;
+        alphaBack = 0.1; alphaInc = 0.18;
+end
 
 % create the time array
 t_end = (Nx * dx) * 2.2 / c0;   % [s]
@@ -87,8 +92,7 @@ source_strength_vector = [80 400]*1e3;
 % physical properties of the transducer
 transducer.number_elements = 128;  	% total number of transducer elements
 transducer.element_width = 5;       % width of each element [grid points]
-% transducer.element_length = 100;  	% length of each element [grid points]
-transducer.element_length = 10;  	% length of each element [grid points]
+transducer.element_length = 100;  	% length of each element [grid points]
 transducer.element_spacing = 0;  	% spacing between elements [grid points]
 transducer.radius = inf;            % radius of curvature of transducer [m]
 
@@ -111,7 +115,6 @@ transducer.transmit_apodization = 'Rectangular';
 transducer.receive_apodization = 'Rectangular';
 
 % define the transducer elements that are currently active
-%number_active_elements = 32;
 transducer.active_elements = ones(transducer.number_elements, 1);
 
 %% Looping two pressure levels
@@ -127,13 +130,11 @@ for ss = 1:length(source_strength_vector)
     transducer.input_signal = input_signal;
     transducerSample = kWaveTransducer(kgrid, transducer);
 
-    % run
+    % RUN
     input_args = {'PMLInside', false,...
         'PMLSize', [pml_x_size, pml_y_size, pml_z_size], ...
         'DataCast', DATA_CAST, 'DataRecast', true, 'PlotSim', false};
-    % sensor_data = kspaceFirstOrder3DG(kgrid, medium, ...
-    %     transducerSample, transducerSample, input_args{:});
-    sensor_data = kspaceFirstOrder3DC(kgrid, medium, ...
+    sensor_data = kspaceFirstOrder3DG(kgrid, medium, ...
         transducerSample, transducerSample, input_args{:});
     rf_prebf(:,:,ss) = sensor_data';
 end
