@@ -1,6 +1,6 @@
 function simulateBaAttInc(baseDir)
 %% Simulating B-mode Ultrasound Images Example
-setup;
+addpath(genpath(pwd));
 % set to 'single' or 'gpuArray-single' to speed up computations
 DATA_CAST       = 'gpuArray-single';     
 simuNames = {'BaAttInc1','BaAttInc2','BaAttInc3'};
