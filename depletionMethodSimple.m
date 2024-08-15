@@ -1,14 +1,32 @@
 clear; close all; clc;
 addpath(genpath(pwd))
-baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
-    'BA_AC_joint\rfdata'];
-fileSam = 'rf_fnum3_PWNE_samBA12_att0p18f2_nc10_400kPa';
-fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
+% baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
+%     'BA_AC_joint\rfdata'];
+% fileSam = 'rf_fnum3_PWNE_samBA12_att0p18f2_nc10_400kPa';
+% fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
+
+baseDir = 'C:\Users\smerino.C084288\Documents\MATLAB\BA_AC_joint\rfdata';
+% fileSam = 'rf_baBack6_baInc9_att0p1.mat';
+% fileSam = 'rf_ba9_attBack0p1_attInc0p18.mat';
+fileSam = 'rf_baBack6_baInc9_attBack0p1_attInc0p18.mat';
+fileRef = 'rf_ref_ba8_att0p12.mat';
+NptodB = 20*log10(exp(1));
 
 % Hyperparameters
 zIni = 0.3; zFin = 5.5;
 freqC = 5; freqTol = 2;
 blockSize = 20; overlap = 0.8;
+radiusDisk = (9)*1e-3;
+centerDepth = 22.5e-3;
+
+% Known variables
+% betaR = 1 + 6/2;
+% alphaR = 0.10*freqC.^2/NptodB*100;
+% alphaS = 0.18*freqC.^2/NptodB*100;
+betaR = 1 + 8/2;
+alphaR = 0.12*freqC.^2/NptodB*100;
+alphaS = 0.1*freqC.^2/NptodB*100;
+v = 5; % scaling factor
 
 %% Sample
 % Loading and cropping
@@ -27,6 +45,20 @@ wl = 1540/freqC/1e6;
 [PL,PH,xP,zP] = getPressures(rf1Filt,rf2Filt,x,z, ...
     [blockSize*wl,blockSize*wl],overlap);
 
+% Plotting Bmode
+Bmode = db(hilbert(rf1Filt));
+Bmode = Bmode - max(Bmode(:));
+figure, imagesc(x*100,z*100,Bmode, [-50 0])
+hold on
+rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+    2*radiusDisk,2*radiusDisk]*100, 'Curvature',1,...
+    'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+hold off
+axis image
+colormap gray
+xlabel('Lateral [cm]')
+ylabel('Depth [cm]')
+
 %% Reference
 % Loading and cropping
 load(fullfile(baseDir,fileRef))
@@ -42,26 +74,29 @@ rf2Filt = filterRfSignal(rf2,fs,freqC,freqTol);
 [PLR,PHR,~,~] = getPressures(rf1Filt,rf2Filt,x,z, ...
     [blockSize*wl,blockSize*wl],overlap);
 
-%% Getting B/A
-NptodB = 20*log10(exp(1));
-betaR = 1 + 6/2;
-alphaR = 0.1*freqC.^2/NptodB*100;
-alphaS = 0.18*freqC.^2/NptodB*100;
-v = 5; % scaling factor
+PLR = mean(PLR,2);
+PHR = mean(PHR,2);
 
+%% Getting B/A
 betaS = betaR*sqrt( (v*PL-PH)./(v*PLR-PHR) .*PLR./PL ).*...
     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
 
 BA = 2*(betaS-1);
 cm = 100;
 figure,
-imagesc(xP*cm,zP*cm,BA, [6 14])
+imagesc(xP*cm,zP*cm,BA, [5 14])
 title(sprintf("B/A = %.2f \\pm %.2f",mean(BA(:)),std(BA(:))))
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
 axis image
 colorbar
 colormap pink
+hold on
+rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+    2*radiusDisk,2*radiusDisk]*100, 'Curvature',1,...
+    'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+hold off
+
 %%
 function [P1,P2,xP,zP] = getPressures(rf1,rf2,x,z,blockSize,overlap)
 dx = x(2) - x(1);

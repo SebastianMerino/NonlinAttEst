@@ -1,11 +1,11 @@
-function simulateBaAttInc(baseDir)
+function simulateBaAttRef(baseDir)
 %% Simulating B-mode Ultrasound Images Example addpath(genpath(pwd));
 addpath(genpath('/opt/MATLAB Add-Ons'));
 addpath(genpath(pwd));
 
 % set to 'single' or 'gpuArray-single' to speed up computations
 DATA_CAST       = 'gpuArray-single';     
-simuNames = {'BaAttInc1','BaAttInc2','BaAttInc3'};
+simuNames = {'BaAttRef'};
 
 for iSim = 1:length(simuNames)
 % =========================================================================
@@ -40,41 +40,18 @@ stdDensity = 2/100;
 medium.alpha_power = 2;
 
 % Properties of the inclusion
-radius_disk = (9)*1e-3;
-center_depth = 22.5e-3;
-switch iSim
-    case 1
-        BaBack = 6; BaInc = 9;
-        alphaBack = 0.1; alphaInc = 0.1;
-
-    case 2
-        BaBack = 9; BaInc = 9;
-        alphaBack = 0.1; alphaInc = 0.18;
-
-    case 3
-        BaBack = 6; BaInc = 9;
-        alphaBack = 0.1; alphaInc = 0.18;
-end
+BaBack = 8;
+alphaBack = 0.12;
 
 % create the time array
 t_end = (Nx * dx) * 2.2 / c0;   % [s]
 kgrid.makeTime(c0, [], t_end);
 
 % B over A map
-medium.BonA = zeros(Nx,Ny,Nz);
-for mm=1:Nz
-    medium.BonA(:,:,mm) =(BaInc - BaBack) * makeDisc(Nx, Ny, ...
-        round(center_depth/dx), Ny/2, round(radius_disk/dx));
-end
-medium.BonA = single(medium.BonA + BaBack);
+medium.BonA = ones(Nx,Ny,Nz)*BaBack;
 
 % Attenuation map
-medium.alpha_coeff = zeros(Nx,Ny,Nz);
-for mm=1:Nz
-    medium.alpha_coeff(:,:,mm) =(alphaInc - alphaBack) * makeDisc(Nx, Ny, ...
-        round(center_depth/dx), Ny/2, round(radius_disk/dx));
-end
-medium.alpha_coeff = single(medium.alpha_coeff + alphaBack);
+medium.alpha_coeff = ones(Nx,Ny,Nz)*alphaBack;
 
 medium.sound_speed_ref = c0;
 medium.sound_speed = c0;
