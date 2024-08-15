@@ -17,9 +17,12 @@ file_ref = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
 beta0 = 1+(10.5)/2;
 alpha0 = 0.18*5^2/8.686*100; % dB/cm -> Np/m
 
+% baseDir = 'C:\Users\smerino.C084288\Documents\MATLAB\BA_AC_joint\maps';
+baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
+     'BA_AC_joint\maps'];
 filename = ['FULLMAPv60_',file_sam,'_',file_ref,'.mat'];
 
-load(filename);
+load(fullfile(baseDir,filename));
 BAmap = BAeff.image;
 mzaxis = BAeff.mz;
 z = BAeff.axial; % meters
