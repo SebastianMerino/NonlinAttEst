@@ -6,32 +6,34 @@ addpath(genpath(pwd))
 
 
 %% Prepare files for sanmple and reference
+
+param.instfreq = 'no';   % 'yes' or 'no'
+
+
 baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
     'BA_AC_joint\rfdata'];
 % fileSam = 'rf_fnum3_PWNE_samBA6_att0p10f2_nc10_400kPa';
 % fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
-
 % fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720';
-% fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_sam400_doubleangle720';
-% fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
+fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_sam400_doubleangle720';
+fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
 
-fileSam = 'rf_baBack6_baInc9_att0p1.mat';
-% fileSam = 'rf_ba9_attBack0p1_attInc0p18.mat';
-% fileSam = 'rf_baBack6_baInc9_attBack0p1_attInc0p18.mat';
-fileRef = 'rf_ba8_att0p12_ref.mat';
-c0 = 1540;
+
 load(fullfile(baseDir,fileSam))
-media.samLP = rf1(:,:,1);
-media.samHP = rf2(:,:,1);
-media.c0 = c0;
-media.x = x;
-media.z = z';
-
+rf = rf1; save('rf_sam_LP','rf','fs','c0','x','z')
+rf = rf2; save('rf_sam_HP','rf','fs','c0','x','z')
+clear rf1 rf2
 load(fullfile(baseDir,fileRef))
-media.refLP = rf1(:,:,1);
-media.refHP = rf2(:,:,1);
+rf = rf1; save('rf_ref_LP','rf','fs','c0','x','z')
+rf = rf2; save('rf_ref_HP','rf','fs','c0','x','z')
 
-%% Assign hyperparameters
+media.samLP = 'rf_sam_LP';
+media.samHP = 'rf_sam_HP';
+media.refLP = 'rf_ref_LP';
+media.refHP = 'rf_ref_HP';
+
+
+%% Assign attenuation corresponding to the RF data
 NptodB = 20*log10(exp(1));
 
 param.ACsam = 0.1/NptodB;
@@ -40,10 +42,17 @@ param.ACref = 0.1/NptodB;
 param.APref = 2;
 param.BoAref = 6;
 
+% [param.ACsam, param.APsam] = acs_filename(file_sam);
+% [param.ACref, param.APref] = acs_filename(file_ref);
+% param.BoAref = BonA_filename(file_ref);
+
+%% Asign other hyperparameters. Double check!
+
 param.factor = 5;   % when P goes from 100 kPa to 1000 kPa
 param.order_filter = 200; % Filter for time domain rf data
+% param.order_filter = 50; % Filter for time domain rf data
 param.f0 = 5;   % MHz
-param.size_wl = 10; % Moving average window for envelopes
+param.size_wl = 10;%4.5; %4;%; %10;   % Moving average window for envelopes
 
 param.width = 4; % Width to smooth envelopes laterally per B/A line
 param.overlap_pct = 0.5;    % 80%
@@ -55,11 +64,14 @@ param.n = 0;
 param.fs = fs;
 param.fnumber = 3; % if plane wave Beamformingstill required
 
+param.noise_level = 0;
+%param.alpha_power = 1.05;
+
 %% Estimation of B/A image
 
 [BAimage, BAparam] = BAestimator(media, param);
 
-
+%%
 figure; imagesc(BAparam.x, BAparam.z, BAimage);
 font = 20;
 axis image
@@ -82,14 +94,15 @@ ylabel('\bf B/A');
 set(gca,'FontSize',font);
 ylim([0 15])
 
+
+%keyboard
+%return
+
 BAeff.image = BAimage; %QUS
 BAeff.lateral = BAparam.x*1e-3;
 BAeff.axial = BAparam.z*1e-3;
 BAeff.mz = BAparam.mz;
 
-% filename = ['FULLMAPv60_',fileSam,'_',fileRef,'.mat'];
-% save(fullfile(['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
-%     'BA_AC_joint\maps'],filename),'BAeff');
 
 %% Getting system
 freq = 5;
@@ -97,7 +110,7 @@ muAlpha = 1; muBeta = 1;
 zlim = [5 55]*1e-3;
 nwl = 40;
 beta0 = 1+(10.5)/2;
-alpha0 = 0.12*5^2/8.686*100; % dB/cm -> Np/m
+alpha0 = 0.1*5^2/8.686*100; % dB/cm -> Np/m
 
 mzaxis = BAeff.mz;
 x = BAeff.lateral';
@@ -161,21 +174,12 @@ Y = mzBA(:); % mzBA
 % Iterating
 theta = [alpha0*ones(ncol*nrow,1);beta0*ones(ncol*nrow,1)];
 regMatrix = blkdiag(muAlpha*speye(ncol*nrow),muBeta*speye(ncol*nrow));
-
-tol = 1e-3;
-maxIte = 100;
-
-updateNorm = [];
-ite = 1;
-while true
+for ite =1:100
     jcb = jacobian(theta,X);
     res = Y - model(theta,X);
     [step,~] = cgs(jcb'*jcb + regMatrix,jcb'*-res);
+    % step = (jcb'*jcb)\(jcb'*-res);
     theta = theta + step;
-
-    updateNorm(ite) = norm(step)/2;
-    if updateNorm(ite)<tol || ite == maxIte, break; end
-    ite = ite + 1;
 end
 
 alphaArr = theta(1:ncol*nrow);
@@ -220,114 +224,175 @@ set(gca,'FontSize',font);
 
 %% Getting mz
 function [BAimage, BAparam] = BAestimator(media, param)
-scale = param.factor;
 
+font = 10;
+scale = param.factor;
+noise_level = param.noise_level;
 ACref = param.ACref;
 ACsam = param.ACsam;
 alpha_power_sam = param.APsam;
 alpha_power_ref = param.APref;
 
-c0 = media.c0;
-x = media.x;
-z = media.z;
+load(media.samLP);
+%rf = bf_planewave(sensor_data, fs, fnumber);
+samLPfull = rf(:,:,1:end);
+load(media.samHP);
+%rf = bf_planewave(sensor_data, fs, fnumber);
+samHPfull = rf(:,:,1:end); clear rf;
+samLPfull = samLPfull + noise_level*randn(size(samLPfull));
+samHPfull = samHPfull + noise_level*randn(size(samHPfull));
 
-%% Filtering
-samLPfull = media.samLP;
-samHPfull = media.samHP;
-refLPfull = media.refLP;
-refHPfull = media.refHP;
+fs = param.fs;
+%dt = 1/fs;
+fL = param.f0 - 1.5; %1.5; %0.4*param.f0;
+fH = param.f0 + 1.5; %8.5; %1.6*param.f0;
+fnyquist = fs/2;
 
-filterParams.order = param.order_filter;
-filterParams.fs = param.fs;
-filterParams.freqC = param.f0;
-filterParams.freqTol = 1.5;
-samLPfull = filterRfSignal(samLPfull,filterParams);
-samHPfull = filterRfSignal(samHPfull,filterParams);
-refLPfull = filterRfSignal(refLPfull,filterParams);
-refHPfull = filterRfSignal(refHPfull,filterParams);
+hfilter = fir1(param.order_filter,[(fL*1e6)/fnyquist (fH*1e6)/fnyquist]);
 
-%%
-
-f0 = param.f0;
-dz = z(2)-z(1);
-L = param.size_wl * (c0/(f0*1e6)) / dz;
-f0_fund_sam = param.f0;
-f0_fund_ref = param.f0;
-
-%% BoA estimation
-
-envLPsam = abs(hilbert(samLPfull));
-envHPsam = abs(hilbert(samHPfull));
-envLPref = abs(hilbert(refLPfull));
-envHPref = abs(hilbert(refHPfull));
-
-envLPsam = movmean(envLPsam,[0 param.width-1],2);
-envHPsam = movmean(envHPsam,[0 param.width-1],2);
-
-envLPsam = envLPsam(:,1:param.overlap:end);
-envHPsam = envHPsam(:,1:param.overlap:end);
-xBA = x(param.overlap:param.overlap:end);
-
-envLPref = mean(envLPref,2);
-envHPref = mean(envHPref,2);
-
-envLPsam = movmean(envLPsam,L);
-envHPsam = movmean(envHPsam,L);
-envLPref = movmean(envLPref,L);
-envHPref = movmean(envHPref,L);
-
-GAPsam = scale*envLPsam - envHPsam;
-GAPref = scale*envLPref - envHPref;
-% GAPsam = movmean(GAPsam,L);
-% GAPref = movmean(GAPref,L);
-
-alpha1 = ACsam;
-
-ATT1MAPsam = ...
-    1./exp( mean( alpha1.* f0_fund_sam.^alpha_power_sam .*(z*1e2) , 2 ) );
-ATT1ref = 1./exp( ACref.*(f0_fund_ref.^alpha_power_ref) .*(z*1e2));
-
-P22sam_smooth = sqrt(abs(GAPsam).*envLPref);
-P22ref_smooth = sqrt(abs(GAPref).*envLPsam);
-
-alpha1_sam =  mean( ACsam .* f0_fund_sam.^alpha_power_sam , 2) *100;
-alpha1_ref =   ( ACref.* ( (f0_fund_ref).^alpha_power_ref)  )*100; % Np/m
-
-mz = ((1+0.5*param.BoAref))* (P22sam_smooth./P22ref_smooth) ...
-    .* (1- ATT1ref.*ATT1ref)./(alpha1_ref.*(z));
-
-ratio_beta = (P22sam_smooth./P22ref_smooth) ...
-    .* (alpha1_sam.*z./(alpha1_ref.*z)) ...
-    .* (1- ATT1ref.*ATT1ref)./(1- ATT1MAPsam.*ATT1MAPsam);
-
-BoAsam = ( ratio_beta*(1+0.5*param.BoAref) - 1 )*2;
+for ff = 1:size(samLPfull,3)
+    for uu = 1:size(samHPfull,2)
+        samLPfull(:,uu,ff) = conv(samLPfull(:,uu,ff),hfilter,'same');
+        samHPfull(:,uu,ff) = conv(samHPfull(:,uu,ff),hfilter,'same');
+    end
+end
 
 
-BoAsam_matrix = BoAsam;
-mzmatrix = mz;
+load(media.refLP);
+%rf = bf_planewave(sensor_data, fs, fnumber);
+refLPfull = rf(:,:,1); %refLPfull = scan_lines'; %refLP = refLP(:,col_last+1-width:col_last);
+load(media.refHP);
+%rf = bf_planewave(sensor_data, fs, fnumber);
+refHPfull = rf(:,:,1); %refHPfull = scan_lines'; %refHP = refHP(:,col_last+1-width:col_last);
+refLPfull = refLPfull + noise_level*randn(size(refLPfull));
+refHPfull = refHPfull + noise_level*randn(size(refHPfull));
+
+
+for uu = 1:size(refHPfull,2)
+    refHPfull(:,uu) = conv(refHPfull(:,uu),hfilter,'same');
+    refLPfull(:,uu) = conv(refLPfull(:,uu),hfilter,'same');
+end
+
+
+col_last = param.col_last;
+overlap = param.overlap;
+width = param.width;
+
+n = param.n;
+x_ini = x;
+xBA = [];
+
+while col_last <= 128
+
+    samLP = samLPfull(:,col_last+1-width:col_last,:);
+    samHP = samHPfull(:,col_last+1-width:col_last,:);
+
+    refLP = refLPfull(:,col_last+1-width:col_last,:);
+    refHP = refHPfull(:,col_last+1-width:col_last,:);
+
+    refLP = refLPfull;
+    refHP = refHPfull;
+
+    %col_last - overlap
+    xBA(end+1) = x(col_last - overlap);
+
+    col_last = col_last + overlap;
+    f0 = param.f0;
+    dz = z(2)-z(1);
+    L = param.size_wl * (c0/(f0*1e6)) / dz;
+
+
+    if strcmp(param.instfreq,'no')
+        f0_fund_sam = param.f0;
+        f0_fund_ref = param.f0;
+    end
+
+    %% BoA estimation
+    % x and z in cm
+    %x = x*1e2;
+    z = z*1e2;
+
+    % z in meters again
+    z = z(:)*1e-2;
+
+    envLPsam = mean(abs(hilbert((samLP))),[2 3]);
+    envHPsam = mean(abs(hilbert((samHP))),[2 3]);
+    envLPref = mean(abs(hilbert((refLP))),[2 3]);
+    envHPref = mean(abs(hilbert((refHP))),[2 3]);
+
+    GAPsam = mean( (scale*envLPsam), 2) - mean( (envHPsam) ,2);
+    GAPref = mean( (scale*envLPref), 2) - mean( (envHPref) ,2);
+
+    alpha1 = ACsam;
+
+    %f0_fund_sam = ifq_sam_ok;
+    %f0_fund_sam = f0 - sigma_1st*sigma50pct^2 * f0^2 * ( alpha1.*(z*1e2) );
+    ATT1MAPsam = 1./exp( mean( alpha1.* f0_fund_sam.^alpha_power_sam .*(z*1e2) , 2 ) );
+
+    % f0_fund_ref = ifq_ref_ok;
+    %f0_fund_ref = f0 - sigma_1st*sigma50pct^2 * f0^2 * ACref*(z*1e2);
+    ATT1ref = 1./exp( ACref.*(f0_fund_ref.^alpha_power_ref) .*(z*1e2));
+
+    P22sam = sqrt(abs(GAPsam).*envLPref);
+    P22ref = sqrt(abs(GAPref).*envLPsam);
+
+
+
+    P22sam_smooth = movmean(P22sam,L);
+    P22ref_smooth = movmean(P22ref,L);
+
+
+    alpha1_sam =  mean( ACsam .* f0_fund_sam.^alpha_power_sam , 2) *100;
+    alpha1_ref =   ( ACref.* ( (f0_fund_ref).^alpha_power_ref)  )*100; % Np/m
+
+    mz = ((1+0.5*param.BoAref))* (P22sam_smooth./P22ref_smooth) ...
+        .* (1- ATT1ref.*ATT1ref)./(alpha1_ref.*(z));
+
+    %ratio_beta2 = mz.* (alpha1_sam.*f0_fund_sam.^alpha_power_sam*(z))./(1- ATT1MAPsam.*ATT1MAPsam);
+
+    ratio_beta = (P22sam_smooth./P22ref_smooth) ...
+        .* (alpha1_sam.*z./(alpha1_ref.*z)) ...
+        .* (1- ATT1ref.*ATT1ref)./(1- ATT1MAPsam.*ATT1MAPsam);
+
+    BoAsam = ( ratio_beta*(1+0.5*param.BoAref) - 1 )*2;
+
+    figure;
+    plot(z, BoAsam,'r', 'LineWidth',3);
+    xlim([5e-3 40e-3]); ylim([0 15]);
+    %set(hfig,'units','normalized','outerposition',[0 0 1 1])
+    %font = 20;
+    set(gca,'fontsize',font)
+    xlabel('\bfDepth (m)');
+    %ylabel('\bfP_{22}^2');
+    ylabel("\bf BoA ");
+    set(gca,'FontSize',font);
+
+    %end
+    n = n+1;
+    if col_last > 10
+        disp(['n = ',num2str(n)]);
+        %           keyboard
+    end
+    close all;
+
+
+    BoAsam_matrix(:,n) = BoAsam;
+    %keyboard
+    mzmatrix(:,n) = mz;
+
+end
+
+%keyboard
 
 BAimage = BoAsam_matrix;
 BAparam.mz =  mzmatrix;
 BAparam.z = z(:)*1e3;
+%BAparam.x = x(:)*1e3;
 BAparam.x = xBA(:)*1e3;
 
 end
 
 %% Utility functions
-function rfFilt = filterRfSignal(rf,filterParams)
-% fs,freqC,freqTol
-order = filterParams.order;
-freqNyq = filterParams.fs/2/1e6;
-fL = filterParams.freqC - filterParams.freqTol;
-fH = filterParams.freqC + filterParams.freqTol;
-
-d = floor(order/2);
-b = fir1(order,[fL fH]/freqNyq,'bandpass');
-nCol = size(rf,2);
-rfFilt = filter(b,1,[rf;zeros(d,nCol)]);
-rfFilt = rfFilt(d+1:end,:);
-end
-
 function jcb = jacobian(theta,x)
 mn = size(theta,1)/2; % number of points in image
 p = length(x)/mn;
@@ -336,9 +401,9 @@ alphaArr = theta(1:mn)';
 betaArr = theta(mn+1:end)';
 zBA = reshape(x,[p,mn]);
 
-dMLfda = -(betaArr).*((2*zBA.*alphaArr+1).*...
-    exp(-2*alphaArr.*zBA) - 1)./(alphaArr.^2.*zBA);
+dMLfda = -(betaArr).*((2*zBA.*alphaArr+1).*exp(-2*alphaArr.*zBA) - 1)./(alphaArr.^2.*zBA);
 dMLfdb = -(1./zBA./alphaArr).*(1 - exp(-2*alphaArr.*zBA));
+
 
 % Indices for sparse matrix
 I = reshape(1:mn*p,[mn,p]); % Row indices

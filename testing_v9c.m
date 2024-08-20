@@ -4,18 +4,21 @@ clear; close all; clc;
 
 
 addpath(genpath(pwd))
-nwl_vector = 40;
+nwl_vector = 20;
 ff = 1; idx = 1;
 freq = 5;
-muAlpha = 1/100; muBeta = 1;
+muAlpha = 1; muBeta = 1;
 % muAlpha = 1; muBeta = 1;
 nwl = nwl_vector;
 
 %% Initialization
 % file_sam = 'rf_fnum3_PWNE_samBA9_att0p10f2_nc10_400kPa';
-file_sam = 'rf_fnum3_PWNE_samBA9_att0p18f2_nc10_400kPa';
+% file_sam = 'rf_fnum3_PWNE_samBA9_att0p18f2_nc10_400kPa';
 % file_sam = 'rf_fnum3_PWNE_samBA12_att0p18f2_nc10_400kPa';
-file_ref = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
+% file_ref = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
+
+file_sam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720';
+file_ref = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
 beta0 = 1+(10.5)/2;
 alpha0 = 0.1*5^2/8.686*100; % dB/cm -> Np/m
 
@@ -37,7 +40,7 @@ nz = floor(blocksize/dz);
 nx = floor(blocksize/dx);
 
 % zlim = [0 80]*1e-3;
-zlim = [10 42]*1e-3;
+zlim = [5 40]*1e-3;
 
 zori = z;
 mzaxisori = mzaxis;
@@ -223,7 +226,7 @@ set(gca,'FontSize',font);
 alpha_mtx = nan(nrow,ncol);
 beta_mtx = nan(nrow,ncol);
 
-save_all_figures_to_directory('figures','LMfig','fig')
+% save_all_figures_to_directory('figures','LMfig','fig')
 
 disp('MSE')
 disp(mean((estBA(:)-estBA2(:)).^2))

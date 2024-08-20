@@ -1,11 +1,11 @@
 clear; close all; clc;
 addpath(genpath(pwd))
-% baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
-%     'BA_AC_joint\rfdata'];
+baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
+    'BA_AC_joint\rfdata'];
 % fileSam = 'rf_fnum3_PWNE_samBA12_att0p18f2_nc10_400kPa';
 % fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
 
-baseDir = 'C:\Users\smerino.C084288\Documents\MATLAB\BA_AC_joint\rfdata';
+% baseDir = 'C:\Users\smerino.C084288\Documents\MATLAB\BA_AC_joint\rfdata';
 fileSam = 'rf_baBack6_baInc9_att0p1.mat';
 % fileSam = 'rf_ba9_attBack0p1_attInc0p18.mat';
 % fileSam = 'rf_baBack6_baInc9_attBack0p1_attInc0p18.mat';
