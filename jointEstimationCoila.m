@@ -112,6 +112,7 @@ nwl = 40;
 beta0 = 1+(10.5)/2;
 alpha0 = 0.1*5^2/8.686*100; % dB/cm -> Np/m
 
+% mzaxis = movmean(BAeff.mz,4,2);
 mzaxis = BAeff.mz;
 x = BAeff.lateral';
 dz = z(2)-z(1);
@@ -145,54 +146,84 @@ end
 
 zfin = zini + nz - 1;
 f0 = freq;
-nrow = length(zfin);
-ncol = L2;
+m = length(zfin);
+n = L2;
 
 %% MY VERSION
 % Constructing arrays
 zblock = (z(zini(1)):1e-3:z(zfin(1))); % m
 np = length(zblock); % Number of points per block
 
-mzBA = zeros(np,nrow*ncol);
-zBA = zeros(np,nrow*ncol); % zBA
-for pixj = 1:ncol
-    for pixi = 1:nrow
+mzBA = zeros(np,m*n);
+zBA = zeros(np,m*n); % zBA
+for pixj = 1:n
+    for pixi = 1:m
         zblock = (z(zini(pixi)):1e-3:z(zfin(pixi))); % m
         for zi = 1:length(zblock)
             [~, idz] = min(abs(zblock(zi)-z));
-            zBA(zi,pixi+(pixj-1)*nrow) = z(idz);
-            mzBA(zi,pixi+(pixj-1)*nrow) = mzaxis(idz,pixj);
-            % X((pixj-1)*np+(pixi-1)*ncol*np+zi) = z(idz);
-            % Y((pixj-1)*np+(pixi-1)*ncol*np+zi) = mzaxis(idz,pixj);
+            zBA(zi,pixi+(pixj-1)*m) = z(idz);
+            mzBA(zi,pixi+(pixj-1)*m) = mzaxis(idz,pixj);
+            % X((pixj-1)*np+(pixi-1)*n*np+zi) = z(idz);
+            % Y((pixj-1)*np+(pixi-1)*n*np+zi) = mzaxis(idz,pixj);
         end
     end
 end
 
+
+zBlock = (reshape(zBA(round(np/2),:),m,n));
+zBlock = zBlock(:,1);
+xBlock = x;
+
 X = zBA(:); % zBA
 Y = mzBA(:); % mzBA
 
-% Iterating
-theta = [alpha0*ones(ncol*nrow,1);beta0*ones(ncol*nrow,1)];
-regMatrix = blkdiag(muAlpha*speye(ncol*nrow),muBeta*speye(ncol*nrow));
-for ite =1:100
+%% Gauss-Newton with LM
+tol = 1e-3;
+maxIte = 400;
+muAlpha = 10;
+muBeta = 10;
+% muAlpha = 0; muBeta = 0;
+beta0 = 1+(10.5)/2;
+alpha0 = 0.1*freq^2; % dB/cm -> Np/m
+
+theta = [alpha0*ones(n*m,1);beta0*ones(n*m,1)];
+regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
+
+loss = [];
+loss(1) = 0.5*norm(Y - model(theta,X))^2;
+
+ite = 1;
+tic 
+while true
     jcb = jacobian(theta,X);
-    res = Y - model(theta,X);
-    [step,~] = cgs(jcb'*jcb + regMatrix,jcb'*-res);
-    % step = (jcb'*jcb)\(jcb'*-res);
+    res = (Y - model(theta,X));
+    [step,~] = pcg(jcb'*jcb + regMatrix,jcb'*-res, tol, 200);
+    % step = (jcb'*jcb + regMatrix)\(jcb'*-res);
     theta = theta + step;
+
+    loss(ite+1) = 0.5*norm(Y - model(theta,X))^2;
+    if abs(loss(ite+1) - loss(ite))<tol || ite == maxIte, break; end
+    ite = ite + 1;
 end
+toc
+alphaArr = theta(1:n*m);
+betaArr = theta(n*m+1:end);
 
-alphaArr = theta(1:ncol*nrow);
-betaArr = theta(ncol*nrow+1:end);
-alpha_dB = alphaArr/5^2/100*8.686; % Np/cm/MH^2 : 0.1
+estAClm = reshape(alphaArr/freq^2,[m,n]);
+estBAlm = reshape(2*(betaArr-1),[m,n]);
 
-estAC2 = reshape(alpha_dB,[nrow,ncol]);
-estBA2 = reshape(2*(betaArr-1),[nrow,ncol]);
+fprintf('AC: %.3f +/- %.3f\n', mean(estAClm(:), 'omitnan'), ...
+    std(estAClm(:), [] ,'omitnan'));
+fprintf('B/A: %.2f +/- %.2f\n', mean(estBAlm(:), 'omitnan'), ...
+    std(estBAlm(:), [] ,'omitnan'));
 
-disp(['AC: ',num2str(median(estAC2(:), 'omitnan'))]);
-disp(['BA: ',num2str(median(estBA2(:), 'omitnan'))]);
+figure('Units','centimeters', 'Position',[5 5 10 5]), 
+plot(loss, 'LineWidth',2)
+xlim([5 length(loss)])
+xlabel('Number of iterations')
+ylabel('Loss')
 
-figure; imagesc(x*1e3,z*1e3,estAC2); colorbar;
+figure; imagesc(x*1e3,z*1e3,estAClm); colorbar;
 clim([0 0.2]);
 %title('ACS (dB/cm/MHz)');
 title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
@@ -207,11 +238,12 @@ ylabel('Depth (mm)');
 %title("\bf BoA map");
 set(gca,'FontSize',font);
 %ylim([5 55])
-pause(0.5)
-figure; imagesc(x*1e3,z*1e3,estBA2); colorbar;
+
+
+figure; imagesc(x*1e3,z*1e3,estBAlm); colorbar;
 clim([5 10]);
 title('B/A');
-title(['B/A = ',num2str(median(estBA2(:),'omitnan'),'%.1f')]);
+title(['B/A = ',num2str(median(estBAlm(:),'omitnan'),'%.1f')]);
 font = 20;
 axis image
 colormap pink; colorbar;
@@ -220,6 +252,7 @@ xlabel('Lateral distance (mm)');
 ylabel('Depth (mm)');
 %title("\bf BoA map");
 set(gca,'FontSize',font);
+pause(0.5)
 
 
 %% Getting mz
@@ -392,34 +425,4 @@ BAparam.x = xBA(:)*1e3;
 
 end
 
-%% Utility functions
-function jcb = jacobian(theta,x)
-mn = size(theta,1)/2; % number of points in image
-p = length(x)/mn;
 
-alphaArr = theta(1:mn)';
-betaArr = theta(mn+1:end)';
-zBA = reshape(x,[p,mn]);
-
-dMLfda = -(betaArr).*((2*zBA.*alphaArr+1).*exp(-2*alphaArr.*zBA) - 1)./(alphaArr.^2.*zBA);
-dMLfdb = -(1./zBA./alphaArr).*(1 - exp(-2*alphaArr.*zBA));
-
-
-% Indices for sparse matrix
-I = reshape(1:mn*p,[mn,p]); % Row indices
-J = (1:mn).*ones(p,1);
-
-jcb = [sparse(I,J,dMLfda) sparse(I,J,dMLfdb)];
-end
-
-function mdl = model(theta,x)
-mn = size(theta,1)/2; % number of points in image
-p = length(x)/mn;
-
-alphaArr = theta(1:mn)';
-betaArr = theta(mn+1:end)';
-zBA = reshape(x,[p,mn]);
-
-mdl = (betaArr./zBA./alphaArr).*(1 - exp(-2*alphaArr.*zBA)) ;
-mdl = mdl(:);
-end

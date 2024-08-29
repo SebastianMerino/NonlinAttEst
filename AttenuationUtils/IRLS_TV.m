@@ -1,6 +1,6 @@
 
 % Total Variation: 0.5*||A*u(:)-b||_2^2 + lambda*TV(u)
-function u = IRLS_TV(b,A,mu,M,N,tol,~,minimask)
+function [u,G] = IRLS_TV(b,A,mu,M,N,tol,~,minimask)
 
 AtA = A'*A;
 Atb = A'*b;
@@ -26,7 +26,7 @@ error = 1;
 [u,~] = cgs(AtA,Atb);
 G(1) = 1/2*(norm( (b - A*u) ))^2 + mu*TVcalc_isotropic(u,M,N,minimask);
 
-while error > tol && ite_irls < 200
+while error > tol && ite_irls < 20
     
     X = reshape(u,M,N);
     ite_irls = ite_irls + 1;
@@ -38,7 +38,8 @@ while error > tol && ite_irls < 200
     vksquare = Dh.^2 + Dv.^2;
     vksquare = vksquare(:);
     
-    eps = 0.3;
+    % eps = 0.03; % 0.3
+    eps = 0.03;
     P = sqrt(vksquare + eps^2);
     P = 1./P;
     %Huber seems not to work;
@@ -50,6 +51,7 @@ while error > tol && ite_irls < 200
     W = kron(speye(2),omega);
     
     [u,~] = cgs(AtA + mu*D'*W*D, Atb, 1e-6, 200);
+
     G(ite_irls+1,1) = 1/2*(norm( (b - A*u) ))^2 + mu*TVcalc_isotropic(u,M,N,minimask);
     error = abs(G(ite_irls+1) - G(ite_irls));
     %error = (G(ite_irls+1) - G(ite_irls)).^2/G(ite_irls).^2;

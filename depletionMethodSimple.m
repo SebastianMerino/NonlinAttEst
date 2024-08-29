@@ -2,14 +2,15 @@ clear; close all; clc;
 addpath(genpath(pwd))
 baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
     'BA_AC_joint\rfdata'];
-% fileSam = 'rf_fnum3_PWNE_samBA12_att0p18f2_nc10_400kPa';
-% fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
+fileSam = 'rf_fnum3_PWNE_samBA9_att0p10f2_nc10_400kPa';
+% fileSam = 'rf_fnum3_PWNE_samBA9_att0p18f2_nc10_400kPa';
+fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
 
 % baseDir = 'C:\Users\smerino.C084288\Documents\MATLAB\BA_AC_joint\rfdata';
-fileSam = 'rf_baBack6_baInc9_att0p1.mat';
+% fileSam = 'rf_baBack6_baInc9_att0p1.mat';
 % fileSam = 'rf_ba9_attBack0p1_attInc0p18.mat';
 % fileSam = 'rf_baBack6_baInc9_attBack0p1_attInc0p18.mat';
-fileRef = 'rf_ba8_att0p12_ref.mat';
+% fileRef = 'rf_ba8_att0p12_ref.mat';
 NptodB = 20*log10(exp(1));
 
 % Hyperparameters
@@ -20,12 +21,12 @@ radiusDisk = (9)*1e-3;
 centerDepth = 22.5e-3;
 
 % Known variables
-% betaR = 1 + 6/2;
-% alphaR = 0.10*freqC.^2/NptodB*100;
-% alphaS = 0.18*freqC.^2/NptodB*100;
-betaR = 1 + 8/2;
-alphaR = 0.12*freqC.^2/NptodB*100;
+betaR = 1 + 6/2;
+alphaR = 0.10*freqC.^2/NptodB*100;
 alphaS = 0.1*freqC.^2/NptodB*100;
+% betaR = 1 + 8/2;
+% alphaR = 0.12*freqC.^2/NptodB*100;
+% alphaS = 0.1*freqC.^2/NptodB*100;
 v = 5; % scaling factor
 
 %% Sample
