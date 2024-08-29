@@ -12,13 +12,16 @@ baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
 % fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
 
 % fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720';
-fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_sam400_doubleangle720';
-fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
+% fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_sam400_doubleangle720';
+% fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
 
 % fileSam = 'rf_baBack6_baInc9_att0p1.mat';
 % fileSam = 'rf_ba9_attBack0p1_attInc0p18.mat';
 % fileSam = 'rf_baBack6_baInc9_attBack0p1_attInc0p18.mat';
 % fileRef = 'rf_ba8_att0p12_ref.mat';
+
+fileSam = 'RFfn3_PWNE_samBA9_att0p10f2_nc10_400kPa';
+fileRef = 'RFfn3_PWNE_refBA6_att12f2_nc10_400kPa';
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));
@@ -29,7 +32,7 @@ centerDepth = 22.5e-3;
 % Known variables
 medium.v = 5;
 medium.betaR = 1 + 6/2;             
-medium.alphaR = 0.1/NptodB*100; % alpha0 in dB/100/MHz2
+medium.alphaR = 0.12/NptodB*100; % alpha0 in dB/100/MHz2
 
 % Sample
 sample = load(fullfile(baseDir,fileSam));
@@ -60,7 +63,7 @@ blockParams.xlim = [-2; 2]/100;
 
 %% Getting B/A
 bzf = [];
-freqVec = [4,5,6];
+freqVec = [4,4.5,5,5.5,6];
 for iFreq = 1:length(freqVec)
     filterParams.freqC = freqVec(iFreq);
     [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);
@@ -96,7 +99,6 @@ axis image
 colorbar
 colormap parula
 
-save('test.mat','xP','zP');
 %% Gauss-Newton with LM
 [m,n,p] = size(bzf);
 tol = 1e-3;
@@ -104,8 +106,8 @@ maxIte = 400;
 muAlpha = 0;
 muBeta = 0;
 % muAlpha = 0; muBeta = 0;
-betaIni = 1+(10.5)/2;
-alphaIni = 0.08/NptodB*100;
+betaIni = 1+(7.5)/2;
+alphaIni = 0.18/NptodB*100;
 
 u = [alphaIni*ones(n*m,1);betaIni*ones(n*m,1)];
 regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
@@ -127,7 +129,7 @@ while true
     ite = ite + 1;
 end
 toc
-
+%%
 alphaArr = u(1:n*m);
 betaArr = u(n*m+1:end);
 
@@ -176,6 +178,39 @@ ylabel('Depth (mm)');
 set(gca,'FontSize',font);
 pause(0.5)
 
+%% Inversion, Coila's implementation
+muLocal = 0.1;
+dzP = zP(2)-zP(1);
+izP = round(zP./dzP);
+
+factorq = izP(1)./izP ;
+estBAcum = estBAlm - estBAlm(1,:).*factorq; 
+% estBAcum = estBAtv - estBAtv(1,:).*factorq;
+estBAcum = estBAcum(2:end,:);
+
+
+P = sparse(tril(ones(m-1)));
+P = P./izP(2:end);
+P = kron(speye(n),P);
+estBAinst = IRLS_TV(estBAcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
+estBAinst = reshape(estBAinst,m-1,n);
+
+figure; imagesc(xP*1e3,zP*1e3,estBAinst); colorbar;
+clim([5 10]);
+title('B/A');
+font = 20;
+axis image
+colormap pink; colorbar;
+set(gca,'fontsize',font)
+xlabel('Lateral distance (mm)');
+ylabel('Depth (mm)');
+hold on
+rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+hold off
+set(gca,'FontSize',font);
+pause(0.1)
 
 %%
 function [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams)

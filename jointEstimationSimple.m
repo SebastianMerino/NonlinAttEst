@@ -9,11 +9,12 @@ addpath(genpath(pwd))
 baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
     'BA_AC_joint\rfdata'];
 % fileSam = 'rf_fnum3_PWNE_samBA6_att0p10f2_nc10_400kPa';
-% fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
+fileSam = 'rf_fnum3_PWNE_samBA9_att0p18f2_nc10_400kPa';
+fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
 
-fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720';
+% fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720';
 % fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_sam400_doubleangle720';
-fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
+% fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
 
 % fileSam = 'rf_baBack6_baInc9_att0p1.mat';
 % fileSam = 'rf_ba9_attBack0p1_attInc0p18.mat';
@@ -34,7 +35,7 @@ media.refHP = rf2(:,:,1);
 %% Assign hyperparameters
 NptodB = 20*log10(exp(1));
 
-param.ACsam = 0.1/NptodB;
+param.ACsam = 0.18/NptodB;
 param.APsam = 2;
 param.ACref = 0.1/NptodB;
 param.APref = 2;
@@ -169,7 +170,7 @@ maxIte = 400;
 muAlpha = 10;
 muBeta = 10;
 % muAlpha = 0; muBeta = 0;
-beta0 = 1+(10.5)/2;
+beta0 = 1+(8.5)/2;
 alpha0 = 0.1*freq^2; % dB/cm -> Np/m
 
 theta = [alpha0*ones(n*m,1);beta0*ones(n*m,1)];

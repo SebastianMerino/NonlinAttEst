@@ -27,6 +27,7 @@ for iFreq = 1:length(freqVec)
     betaL = ones(size(Xmesh))*(1+6/2);
     betaL(inc) = (1+9/2);
     alphaL = ones(size(Xmesh))*0.1;
+    alphaL(inc) = 0.15;
     freq = freqVec(iFreq);
     
     figure('Units','centimeters', 'Position',[5 5 20 10])
@@ -210,14 +211,17 @@ pause(0.5)
 
 %% Inversion, Coila's implementation
 zBlock = zP; xBLock = xP; 
-muLocal = 0.01;
+muLocal = 0.001;
 dzBlock = zBlock(2)-zBlock(1);
 izBlock = round(zBlock./dzBlock);
 
 factorq = izBlock(1)./izBlock ;
+
 estBAcum = estBAlm - estBAlm(1,:).*factorq; 
-% estBAcum = estBAtv - estBAtv(1,:).*factorq;
 estBAcum = estBAcum(2:end,:);
+
+estACcum = estAClm - estAClm(1,:).*factorq; 
+estACcum = estACcum(2:end,:);
 
 
 P = sparse(tril(ones(m-1)));
@@ -225,6 +229,10 @@ P = P./izBlock(2:end);
 P = kron(speye(n),P);
 estBAinst = IRLS_TV(estBAcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
 estBAinst = reshape(estBAinst,m-1,n);
+
+estACinst = IRLS_TV(estACcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
+estACinst = reshape(estACinst,m-1,n);
+
 
 figure; imagesc(x*1e3,z*1e3,estBAinst); colorbar;
 clim([5 10]);
@@ -243,6 +251,22 @@ hold off
 set(gca,'FontSize',font);
 pause(0.1)
 
+figure; imagesc(x*1e3,z*1e3,estACinst); colorbar;
+clim([0 0.2]);
+title('AC');
+font = 20;
+axis image
+colormap turbo; colorbar;
+set(gca,'fontsize',font)
+xlabel('Lateral distance (mm)');
+ylabel('Depth (mm)');
+hold on
+rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+hold off
+set(gca,'FontSize',font);
+pause(0.1)
 
 %% ADMM
 % Hyperparameters

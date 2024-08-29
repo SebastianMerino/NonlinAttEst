@@ -34,7 +34,7 @@ NptodB = db(exp(1));
 [Xmesh,Zmesh] = meshgrid(x,z);
 inc = Xmesh.^2 + (Zmesh-centerDepth).^2 <= (radiusDisk).^2;
 betaL = ones(size(Xmesh))*(1+6/2);
-betaL(inc) = (1+9/2);
+% betaL(inc) = (1+9/2);
 alphaL = ones(size(Xmesh))*0.1*freq^2;
 
 figure('Units','centimeters', 'Position',[5 5 20 10])
@@ -178,6 +178,7 @@ while true
     ite = ite + 1;
 end
 toc
+%%
 alphaArr = theta(1:n*m);
 betaArr = theta(n*m+1:end);
 
@@ -237,7 +238,7 @@ hold off
 pause(0.5)
 
 %% Inversion, Coila's implementation
-muLocal = 1;
+muLocal = 0.1;
 dzBlock = zBlock(2)-zBlock(1);
 izBlock = round(zBlock./dzBlock);
 
