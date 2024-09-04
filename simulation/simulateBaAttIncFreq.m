@@ -40,21 +40,23 @@ stdDensity = 2/100;
 medium.alpha_power = 2;
 
 % Properties of the inclusion
-radius_disk = (9)*1e-3;
-center_depth = 22.5e-3;
-switch iSim
-    case 1
-        BaBack = 6; BaInc = 9;
-        alphaBack = 0.1; alphaInc = 0.1;
-
-    case 2
-        BaBack = 9; BaInc = 9;
-        alphaBack = 0.1; alphaInc = 0.18;
-
-    case 3
-        BaBack = 6; BaInc = 9;
-        alphaBack = 0.1; alphaInc = 0.18;
-end
+radius_disk = 8e-3;
+center_depth = 2.5e-2;
+% switch iSim
+%     case 1
+%         BaBack = 6; BaInc = 9;
+%         alphaBack = 0.1; alphaInc = 0.1;
+% 
+%     case 2
+%         BaBack = 9; BaInc = 9;
+%         alphaBack = 0.1; alphaInc = 0.18;
+% 
+%     case 3
+%         BaBack = 6; BaInc = 9;
+%         alphaBack = 0.1; alphaInc = 0.18;
+% end
+BaBack = 6; BaInc = 9;
+alphaBack = 0.1; alphaInc = 0.1;
 
 % create the time array
 t_end = (Nx * dx) * 2.2 / c0;   % [s]

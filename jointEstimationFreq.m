@@ -57,12 +57,13 @@ filterParams.nCycles = 10; % Number of cycles of the initial filter
 wl = 1540/5/1e6; % Mean central frequency
 blockParams.blockSize = [15 15]*wl; 
 blockParams.overlap = 0.8;
-blockParams.zlim = [0.8; 5.5]/100;
-blockParams.xlim = [-2; 2]/100;
+blockParams.zlim = [0.8; 5]/100;
+blockParams.xlim = [-2.5; 2.5]/100;
+
+freqVec = [5,6,7];
 
 %% Getting B/A
 bzf = [];
-freqVec = [5,6,7];
 for iFreq = 1:length(freqVec)
     filterParams.freqC = freqVec(iFreq);
     [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);
@@ -105,7 +106,7 @@ maxIte = 400;
 muAlpha = 0;
 muBeta = 0;
 % muAlpha = 0; muBeta = 0;
-betaIni = 1+(5)/2;
+betaIni = 1+(7.5)/2;
 alphaIni = 0.15/NptodB*100;
 
 u = [alphaIni*ones(n*m,1);betaIni*ones(n*m,1)];
@@ -223,7 +224,7 @@ std(estBAinst(back), [] ,'omitnan'));
 % Hyperparameters TEST
 tol = 1e-3;
 muAlpha = 1e-1; muBeta = 1e-2;
-rho = 10;
+rho = 1;
 maxIte = 100;
 
 % Initialization
@@ -358,11 +359,11 @@ axis image
 colormap turbo; colorbar;
 xlabel('Lateral distance (mm)');
 ylabel('Depth (mm)');
-% hold on
-% rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
-% 2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
-% 'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
-% hold off
+hold on
+rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+hold off
 
 
 figure; imagesc(xP*1e3,zP*1e3,estBAtv); colorbar;
@@ -372,11 +373,11 @@ axis image
 colormap pink; colorbar;
 xlabel('Lateral distance (mm)');
 ylabel('Depth (mm)');
-% hold on
-% rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
-% 2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
-% 'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
-% hold off
+hold on
+rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+hold off
 pause(0.1)
 
 %%
