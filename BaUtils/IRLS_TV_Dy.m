@@ -51,7 +51,7 @@ while error > tol && ite < 200
     vksquare = Dh.^2 + Dv.^2;
     vksquare = vksquare(:);
     
-    eps = 0.03;
+    eps = 0.03; % 0.03
     P = sqrt(vksquare + eps^2);
     P = 1./P;
     

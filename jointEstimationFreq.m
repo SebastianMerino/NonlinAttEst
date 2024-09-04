@@ -7,31 +7,30 @@ baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
     'BA_AC_joint\rfdata'];
 % baseDir = 'C:\Users\smerino.C084288\Documents\MATLAB\BA_AC_joint\rfdata';
 
-% fileSam = 'rf_fnum3_PWNE_samBA9_att0p10f2_nc10_400kPa';
-% fileSam = 'rf_fnum3_PWNE_samBA9_att0p18f2_nc10_400kPa';
-% fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
-
 % fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720';
-% fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_sam400_doubleangle720';
 % fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
 
-% fileSam = 'rf_baBack6_baInc9_att0p1.mat';
+fileSam = 'rf_baBack6_baInc9_att0p1.mat';
 % fileSam = 'rf_ba9_attBack0p1_attInc0p18.mat';
 % fileSam = 'rf_baBack6_baInc9_attBack0p1_attInc0p18.mat';
-% fileRef = 'rf_ba8_att0p12_ref.mat';
+fileRef = 'rf_ba8_att0p12_ref.mat';
 
-fileSam = 'RFfn3_PWNE_samBA9_att0p10f2_nc10_400kPa';
-fileRef = 'RFfn3_PWNE_refBA6_att12f2_nc10_400kPa';
+% fileSam = 'RFfn3_PWNE_samBA9_att0p10f2_nc10_400kPa';
+% fileRef = 'RFfn3_PWNE_refBA6_att8f2_nc10_400kPa';
+% fileRef = 'RFfn3_PWNE_refBA6_att10f2_nc10_400kPa';
+% fileRef = 'RFfn3_PWNE_refBA6_att12f2_nc10_400kPa';
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));
+% radiusDisk = (9)*1e-3;
+% centerDepth = 22.5e-3;
 radiusDisk = (9)*1e-3;
 centerDepth = 22.5e-3;
 
 %% Preparing data
 % Known variables
 medium.v = 5;
-medium.betaR = 1 + 6/2;             
+medium.betaR = 1 + 8/2;             
 medium.alphaR = 0.12/NptodB*100; % alpha0 in dB/100/MHz2
 
 % Sample
@@ -56,24 +55,24 @@ filterParams.nCycles = 10; % Number of cycles of the initial filter
 
 % Subsampling parameters
 wl = 1540/5/1e6; % Mean central frequency
-blockParams.blockSize = [10 20]*wl; 
+blockParams.blockSize = [15 15]*wl; 
 blockParams.overlap = 0.8;
-blockParams.zlim = [0.3; 5.5]/100;
+blockParams.zlim = [0.8; 5.5]/100;
 blockParams.xlim = [-2; 2]/100;
 
 %% Getting B/A
 bzf = [];
-freqVec = [4,4.5,5,5.5,6];
+freqVec = [5,6,7];
 for iFreq = 1:length(freqVec)
     filterParams.freqC = freqVec(iFreq);
     [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);
     bzf(:,:,iFreq) = bz;
 end
 %% Measurements
-figure,
+figure('Units','centimeters', 'Position',[5 5 20 6]),
 tiledlayout(1,3)
 nexttile,
-imagesc(xP*100,zP*100,bzf(:,:,1), [2 13])
+imagesc(xP*100,zP*100,bzf(:,:,1), [2 8])
 title("Measurements b(z,f)")
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
@@ -82,7 +81,7 @@ colorbar
 colormap parula
 
 nexttile,
-imagesc(xP*100,zP*100,bzf(:,:,2), [2 13])
+imagesc(xP*100,zP*100,bzf(:,:,2), [2 8])
 title("Measurements b(z,f)")
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
@@ -91,7 +90,7 @@ colorbar
 colormap parula
 
 nexttile,
-imagesc(xP*100,zP*100,bzf(:,:,3), [2 13])
+imagesc(xP*100,zP*100,bzf(:,:,3), [2 8])
 title("Measurements b(z,f)")
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
@@ -106,8 +105,8 @@ maxIte = 400;
 muAlpha = 0;
 muBeta = 0;
 % muAlpha = 0; muBeta = 0;
-betaIni = 1+(7.5)/2;
-alphaIni = 0.18/NptodB*100;
+betaIni = 1+(5)/2;
+alphaIni = 0.15/NptodB*100;
 
 u = [alphaIni*ones(n*m,1);betaIni*ones(n*m,1)];
 regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
@@ -127,9 +126,20 @@ while true
     loss(ite+1) = 0.5*norm(modelFreq(u,zP,freqVec) - bzf(:))^2;
     if abs(loss(ite+1) - loss(ite))<tol || ite == maxIte, break; end
     ite = ite + 1;
+
+    alphaArr = u(1:n*m);
+    betaArr = u(n*m+1:end);
+
+    estAClm = reshape(alphaArr*NptodB/100,[m,n]);
+    estBAlm = reshape(2*(betaArr-1),[m,n]);
+
+    fprintf('AC: %.3f +/- %.3f\n', mean(estAClm(:), 'omitnan'), ...
+    std(estAClm(:), [] ,'omitnan'));
+    fprintf('B/A : %.2f +/- %.2f\n', mean(estBAlm(:),'omitnan'), ...
+    std(estBAlm(:), [] ,'omitnan'));
 end
 toc
-%%
+
 alphaArr = u(1:n*m);
 betaArr = u(n*m+1:end);
 
@@ -137,9 +147,9 @@ estAClm = reshape(alphaArr*NptodB/100,[m,n]);
 estBAlm = reshape(2*(betaArr-1),[m,n]);
 
 fprintf('AC: %.3f +/- %.3f\n', mean(estAClm(:), 'omitnan'), ...
-    std(estAClm(:), [] ,'omitnan'));
-fprintf('B/A: %.2f +/- %.2f\n', mean(estBAlm(:), 'omitnan'), ...
-    std(estBAlm(:), [] ,'omitnan'));
+std(estAClm(:), [] ,'omitnan'));
+fprintf('B/A : %.2f +/- %.2f\n', mean(estBAlm(:),'omitnan'), ...
+std(estBAlm(:), [] ,'omitnan'));
 
 figure('Units','centimeters', 'Position',[5 5 10 5]), 
 plot(loss, 'LineWidth',2)
@@ -149,37 +159,23 @@ ylabel('Loss')
 
 figure; imagesc(xP*1e3,zP*1e3,estAClm); colorbar;
 clim([0 0.2]);
-%title('ACS (dB/100/MHz)');
 title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/100')
-font = 20;
 axis image
 colormap turbo; colorbar;
-%clim([0 12])
-%font = 20;
-set(gca,'fontsize',font)
 xlabel('Lateral distance (mm)');
 ylabel('Depth (mm)');
-%title("\bf BoA map");
-set(gca,'FontSize',font);
-%ylim([5 55])
-
 
 figure; imagesc(xP*1e3,zP*1e3,estBAlm); colorbar;
-clim([5 10]);
+clim([5 11]);
 title('B/A');
-title(['B/A = ',num2str(median(estBAlm(:),'omitnan'),'%.1f')]);
-font = 20;
 axis image
 colormap pink; colorbar;
-set(gca,'fontsize',font)
 xlabel('Lateral distance (mm)');
 ylabel('Depth (mm)');
-%title("\bf BoA map");
-set(gca,'FontSize',font);
 pause(0.5)
 
-%% Inversion, Coila's implementation
-muLocal = 0.1;
+%% Local maps with regularization
+muLocal = 0.01;
 dzP = zP(2)-zP(1);
 izP = round(zP./dzP);
 
@@ -195,13 +191,11 @@ P = kron(speye(n),P);
 estBAinst = IRLS_TV(estBAcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
 estBAinst = reshape(estBAinst,m-1,n);
 
-figure; imagesc(xP*1e3,zP*1e3,estBAinst); colorbar;
-clim([5 10]);
+figure; imagesc(xP*1e3,zP(2:end)*1e3,estBAinst); colorbar;
+clim([5 11]);
 title('B/A');
-font = 20;
 axis image
 colormap pink; colorbar;
-set(gca,'fontsize',font)
 xlabel('Lateral distance (mm)');
 ylabel('Depth (mm)');
 hold on
@@ -209,7 +203,180 @@ rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
 2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
 'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
 hold off
-set(gca,'FontSize',font);
+pause(0.1)
+
+[Xmesh,Zmesh] = meshgrid(xP,zP(2:end));
+inc = Xmesh.^2 + (Zmesh-centerDepth).^2 < (radiusDisk-3e-3).^2;
+back = Xmesh.^2 + (Zmesh-centerDepth).^2 > (radiusDisk+3e-3).^2;
+fprintf('B/A inc: %.2f +/- %.2f\n', mean(estBAinst(inc),'omitnan'), ...
+std(estBAinst(inc), [] ,'omitnan'));
+fprintf('B/A back: %.2f +/- %.2f\n', mean(estBAinst(back),'omitnan'), ...
+std(estBAinst(back), [] ,'omitnan'));
+
+%% ADMM
+% Hyperparameters BEST
+% tol = 1e-3;
+% muAlpha = 1e0; muBeta = 1e-1;
+% rho = 10;
+% maxIte = 200;
+
+% Hyperparameters TEST
+tol = 1e-3;
+muAlpha = 1e-1; muBeta = 1e-2;
+rho = 10;
+maxIte = 100;
+
+% Initialization
+beta0 = 1+(7.5)/2;
+alpha0 = 0.1/NptodB*100; % Np/m
+u = [alpha0*ones(n*m,1);beta0*ones(n*m,1)];
+v = [alpha0*ones(n*m,1);beta0*ones(n*m,1)];
+w = zeros(size(u));
+
+% Auxiliar
+dzP = zP(2)-zP(1);
+izP = round(zP./dzP);
+DP = [-izP izP];
+DP = spdiags(DP, [-1 0],m,m);
+DP(1,:) = DP(2,:);
+DP = kron(speye(n),DP);
+mask = ones(n*m,1);
+I = speye(2*m*n);
+Ii = I(:,1:m*n);
+Id = I(:,1+m*n:end);
+
+% Objective functions
+Fid = []; Reg = []; Dual = [];
+Fid(1) = 1/2*norm( modelFreq(u,zP,freqVec) - bzf(:) )^2;
+Reg(1) = muAlpha*TVcalc_isotropic(DP*u(1:m*n),m,n,mask) + ...
+    muBeta*TVcalc_isotropic(DP*u(m*n+1:end),m,n,mask);
+Dual(1) = 0;
+ite  = 0;
+error = 1;
+tic
+while abs(error) > tol && ite < maxIte
+    ite = ite + 1;
+    
+    % Fidelity step
+    u = optimNonLinearGNFreq(zP,freqVec,bzf(:), speye(2*m*n),v-w, rho, tol,u);
+
+    % Regularization step
+    v = optimAdmmTvDy(Ii,Id,u+w, muAlpha/rho,muBeta/rho ,m,n,tol,mask,DP);
+    
+    % Dual update
+    w = w + u - v;
+
+    % Loss
+    Fid(ite+1) = 1/2*norm( modelFreq(u,zP,freqVec) - bzf(:) )^2;
+    Reg(ite+1) = muAlpha*TVcalc_isotropic(DP*v(1:m*n),m,n,mask) + ...
+        muBeta*TVcalc_isotropic(DP*v(m*n+1:end),m,n,mask);
+    Dual(ite+1) = norm(u-v);
+    fprintf("Ite: %01i, Fid: %.3f, Reg: %.3f, Dual: %.3f\n",...
+        ite,Fid(ite+1),Reg(ite+1),Dual(ite+1))
+    error = Fid(ite+1) + Reg(ite+1) - Fid(ite) - Reg(ite);
+
+    if mod(ite,10)==1
+        alphaArr = reshape(DP*u(1:m*n),[m,n]);
+        betaArr = reshape(DP*u(1+m*n:end),[m,n]);
+        estACtv = alphaArr*NptodB/100;
+        estBAtv = 2*(betaArr-1);
+
+        figure; tiledlayout(1,2)
+        t1 = nexttile;
+        imagesc(xP*1e3,zP*1e3,estACtv); colorbar;
+        clim([0 0.2]);
+        title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
+        axis image
+        colorbar;
+        xlabel('Lateral distance (mm)');
+        ylabel('Depth (mm)');
+        hold on
+        rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+            2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+            'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+        hold off
+
+        nexttile; imagesc(xP*1e3,zP*1e3,estBAtv); colorbar;
+        clim([5 11]);
+        title('B/A');
+        axis image
+        colormap pink; colorbar;
+        xlabel('Lateral distance (mm)');
+        ylabel('Depth (mm)');
+        hold on
+        rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+            2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+            'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+        hold off
+
+        colormap(t1,turbo); 
+        pause(0.1)
+
+    end
+end
+toc
+%%
+figure('Units','centimeters', 'Position',[5 5 10 15]),
+tiledlayout(2,1)
+nexttile,
+plot(Fid+Reg, 'LineWidth',2)
+ylabel('Objective')
+xlim([3 length(Fid)])
+nexttile,
+plot(Dual, 'LineWidth',2)
+xlabel('Number of iterations')
+ylabel('Dual step norm')
+xlim([3 length(Fid)])
+
+
+alphaArr = reshape(DP*u(1:m*n),[m,n]);
+betaArr = reshape(DP*u(1+m*n:end),[m,n]);
+
+estACtv = alphaArr*NptodB/100;
+estBAtv = 2*(betaArr-1);
+
+
+[Xmesh,Zmesh] = meshgrid(xP,zP);
+inc = Xmesh.^2 + (Zmesh-centerDepth).^2 < (radiusDisk-1e-3).^2;
+back = Xmesh.^2 + (Zmesh-centerDepth).^2 > (radiusDisk+1e-3).^2;
+
+fprintf('AC: %.3f +/- %.3f\n', mean(estACtv(:), 'omitnan'), ...
+std(estACtv(:), [] ,'omitnan'));
+fprintf('B/A: %.2f +/- %.2f\n', mean(estBAtv(:),'omitnan'), ...
+std(estBAtv(:), [] ,'omitnan'));
+
+fprintf('B/A inc: %.2f +/- %.2f\n', mean(estBAtv(inc),'omitnan'), ...
+std(estBAtv(:), [] ,'omitnan'));
+fprintf('B/A back: %.2f +/- %.2f\n', mean(estBAtv(back),'omitnan'), ...
+std(estBAtv(:), [] ,'omitnan'));
+
+
+figure; imagesc(xP*1e3,zP*1e3,estACtv); colorbar;
+clim([0 0.2]);
+title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
+axis image
+colormap turbo; colorbar;
+xlabel('Lateral distance (mm)');
+ylabel('Depth (mm)');
+% hold on
+% rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+% 2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+% 'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+% hold off
+
+
+figure; imagesc(xP*1e3,zP*1e3,estBAtv); colorbar;
+clim([5 11]);
+title('B/A');
+axis image
+colormap pink; colorbar;
+xlabel('Lateral distance (mm)');
+ylabel('Depth (mm)');
+% hold on
+% rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+% 2*radiusDisk,2*radiusDisk]*1000, 'Curvature',1,...
+% 'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+% hold off
 pause(0.1)
 
 %%

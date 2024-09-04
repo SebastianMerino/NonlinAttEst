@@ -26,7 +26,7 @@ radiusDisk = (9)*1e-3;
 centerDepth = 22.5e-3;
 
 % Hyperparameters
-freqC = 5; 
+freqC = 6; 
 zIni = 0.3; zFin = 5.5;
 wl = 1540/freqC/1e6;
 v = 5; % scaling factor
@@ -34,7 +34,7 @@ v = 5; % scaling factor
 % Known variables
 betaR = 1 + 6/2;
 alphaR = 0.10*freqC.^2/NptodB*100;
-alphaS = 0.1*freqC.^2/NptodB*100;
+alphaS = 0.18*freqC.^2/NptodB*100;
 % betaR = 1 + 8/2;
 % alphaR = 0.12*freqC.^2/NptodB*100;
 % alphaS = 0.1*freqC.^2/NptodB*100;
@@ -82,7 +82,7 @@ PHRfull = getFilteredPressure(rfHR,fs,freqC*1e6,freqTol*1e6,order);
 %% 
 % Subsampling parameters
 wl = 1540/5/1e6; % Mean central frequency
-blockParams.blockSize = [10 20]*wl; 
+blockParams.blockSize = [20 20]*wl; 
 blockParams.overlap = 0.8;
 blockParams.zlim = [0.3; 5.5]/100;
 blockParams.xlim = [-2; 2]/100;
@@ -99,6 +99,10 @@ PHR = meanP(:,:,4);
 %% Getting B/A
 betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
+% betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*...
+%     abs(v^3*PLR-PHR)./abs(v^3*PL-PH) ).*...
+%     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
+
 BA = 2*(betaS-1);
 cm = 100;
 figure,

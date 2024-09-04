@@ -44,6 +44,11 @@ while abs(error) > tol && ite < 200
 
     error = abs(fid(ite+1) + reg(ite+1) - fid(ite) - reg(ite));
 
+    % figure,
+    % imagesc(reshape(DP*B,m,n)),colorbar
+    % figure
+    % imagesc(reshape(DP*C,m,n)),colorbar
+
 end
 
 % figure,plot([fid',reg'])
