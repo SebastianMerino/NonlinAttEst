@@ -60,7 +60,7 @@ blockParams.overlap = 0.8;
 blockParams.zlim = [0.8; 5]/100;
 blockParams.xlim = [-2.5; 2.5]/100;
 
-freqVec = [5,6,7];
+freqVec = [5,6,7]; % FRECUENCIES FOR FILTERING
 
 %% Getting B/A
 bzf = [];
@@ -380,8 +380,11 @@ rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
 hold off
 pause(0.1)
 
-%%
+%% Utility functions
 function [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams)
+%   Gets a 2D map of measurements (mz in the IUS 2024 paper)
+%   given the rf data and some hyperparameters. Downsamples in the axial
+%   and lateral directions
 
 z = medium.z;
 x = medium.x;
@@ -397,51 +400,11 @@ dz = z(2) - z(1);
 freqC = filterParams.freqC;
 freqTol = filterParams.freqTol;
 wl = 1540/freqC/1e6;
-% disp(wl*filterParams.nCycles)
 order = round(wl*filterParams.nCycles/dz);
 PLfull = getFilteredPressure(rfL,fs,freqC*1e6,freqTol*1e6,order);
 PHfull = getFilteredPressure(rfH,fs,freqC*1e6,freqTol*1e6,order);
 PLRfull = getFilteredPressure(rfLR,fs,freqC*1e6,freqTol*1e6,order);
 PHRfull = getFilteredPressure(rfHR,fs,freqC*1e6,freqTol*1e6,order);
-
-% figure,
-% tiledlayout(1,4)
-% nexttile,
-% imagesc(x*100,z*100,PLfull)
-% title("Measurements b(z,f)")
-% xlabel('Lateral [cm]')
-% ylabel('Depth [cm]')
-% axis image
-% colorbar
-% colormap parula
-% 
-% nexttile,
-% imagesc(x*100,z*100,PHfull)
-% title("Measurements b(z,f)")
-% xlabel('Lateral [cm]')
-% ylabel('Depth [cm]')
-% axis image
-% colorbar
-% colormap parula
-% 
-% nexttile,
-% imagesc(x*100,z*100,PLRfull)
-% title("Measurements b(z,f)")
-% xlabel('Lateral [cm]')
-% ylabel('Depth [cm]')
-% axis image
-% colorbar
-% colormap parula
-% 
-% nexttile,
-% imagesc(x*100,z*100,PHRfull)
-% title("Measurements b(z,f)")
-% xlabel('Lateral [cm]')
-% ylabel('Depth [cm]')
-% axis image
-% colorbar
-% colormap parula
-
 
 % Block averaging
 [meanP,xP,zP] = getMeanBlock(cat(3,PLfull,PHfull,PLRfull,PHRfull),x,z,...
@@ -457,14 +420,14 @@ bz = medium.betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
     ( 1-exp(-2*attRef*zP) )/attRef./zP;
 
 end
-
-%%
+% ---------------------------------------------------------------------- %
+% ---------------------------------------------------------------------- %
 function  P = getFilteredPressure(rf,fs,freqC,freqTol,order)
+%   Filters the rf data around a center frequency and returns the envelope
+%   All frequencies should be in MHz
+
 t = (0:size(rf,1)-1)'./fs;
 rfMod = rf.*exp(1j*2*pi*freqC*t);
-
-% figure, plot(mean(abs(fft(rf)),2))
-% figure, plot(mean(abs(fft(rfMod)),2))
 
 freqNyq = fs/2;
 d = floor(order/2);

@@ -1,6 +1,6 @@
 function [u,G] = IRLS_TV_Dy(b,A,mu,M,N,tol,mask,DP)
-% Optimizes the following cost function of weighted isotropic TV:
-%   0.5*||A*u(:)-b||_2^2 + mu*SWTV(Dy*u)
+% Optimizes the following cost function :
+%   0.5*||A*u(:)-b||_2^2 + mu*TV(DP*u)
 % Inputs: 
 %       b               vector containing measurements
 %       A               matrix for linear system of eq
@@ -12,8 +12,8 @@ function [u,G] = IRLS_TV_Dy(b,A,mu,M,N,tol,mask,DP)
 %       u               vector of image samples, size MN
 %       G               vector containing cost function for each iteration
 %
-% Author: A. Coila
-% Weights and docs added by Sebastian Merino
+% Modified from a function made by A. Coila
+% Matrix DP and docs added by Sebastian Merino
 
 AtA = A'*A;
 Atb = A'*b;

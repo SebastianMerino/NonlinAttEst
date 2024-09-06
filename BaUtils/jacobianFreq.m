@@ -1,7 +1,11 @@
 function jcb = jacobianFreq(u,z,freq)
-% Evaluates the model given u = [a' b']', the column vector z and the row
-% vector freq.
-%    a is in Np/m/MHz^2, b is adimensional, freq is in MHz, z is in m
+% Gets the jacobian matrix, of the function specified in modelFreq.m
+% given u = [a' b']', the column vector z and the row vector freq.
+%   a is in Np/m/MHz^2, 
+%   b is adimensional, 
+%   z is in m, 
+%   freq is in MHz 
+% By Sebastian Merino
 
 m = length(z);     % number of rows
 n = length(u)/2/m; % number of cols

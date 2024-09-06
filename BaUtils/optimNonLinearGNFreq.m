@@ -1,7 +1,7 @@
 function u = optimNonLinearGNFreq(z,f,bzf, C,d,rho, tol,u0)
 %   Optimizes F(u) = 1/2 * ||A(u) - b||^2 + rho/2 * ||C*u - d||^2
 %   where A(u) is a non-linear function characterized by the functions
-%   model.m and jacobian.m, using the Gauss-Newton approach
+%   modelFreq.m and jacobianFreq.m, using the Gauss-Newton approach
 % 
 %   By Sebastian Merino on August 23rd, 2024
 
