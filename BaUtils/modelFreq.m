@@ -1,7 +1,12 @@
 function mdl = modelFreq(u,z,freq)
-% Evaluates the model given u = [a' b']', the column vector z and the row
+% Evaluates the model given u = [a' b']', the column vector z, and the row
 % vector freq.
-%    a is in Np/m/MHz^2, b is adimensional, freq is in MHz, z is in m
+%   a is in Np/m/MHz^2, 
+%   b is adimensional, 
+%   z is in m, 
+%   freq is in MHz 
+% Result is a 3D map (rows, columns, freq) stacked in a m*n*p vector
+% By Sebastian Merino
 
 m = length(z);     % number of rows
 n = length(u)/2/m; % number of cols

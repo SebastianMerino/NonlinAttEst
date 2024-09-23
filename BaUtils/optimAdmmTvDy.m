@@ -1,6 +1,7 @@
 function [BC] = optimAdmmTvDy(A1,A2,b,mu1,mu2,m,n,tol,mask,DP)
 % Optimizes the objective function
 % F(u)  = 1/2*||A1*B + A1*C - b||^2 + mu1*TV(DP*B) + mu2*TV(DP*C)
+% Modified from a function made by A. Coila
 
 A = [A1 A2];
 AtA = A'*A;
