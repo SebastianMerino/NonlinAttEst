@@ -16,94 +16,101 @@ m = 6923; n = 128;
 x = (0:n-1)*dx; x = x - mean(x);
 z = (0:m-1)'*dz;
 
-%% Generating local maps
+baRange = [5 13];
+attRange = [0.05,0.2];
+
+freqVec = [4,5,6];
+
+%% Ideal maps
+% Generating local maps
 NptodB = db(exp(1));
 [Xmesh,Zmesh] = meshgrid(x,z);
 inc = Xmesh.^2 + (Zmesh-centerDepth).^2 <= (radiusDisk).^2;
+betaL = ones(size(Xmesh))*(1+6/2);
+betaL(inc) = (1+12/2);
+alphaL = ones(size(Xmesh))*0.1;
+alphaL(inc) = 0.1;
 
+figure('Units','centimeters', 'Position',[5 5 20 10])
+font = 9;
+tiledlayout(1,2)
+t1 = nexttile;
+imagesc(x*1e2,z*1e2,alphaL); colorbar;
+clim(attRange);
+title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
+axis image
+colorbar;
+set(gca,'fontsize',font)
+xlabel('Lateral distance (cm)');
+ylabel('Depth (cm)');
+
+nexttile; imagesc(x*1e2,z*1e2,(betaL-1)*2); colorbar;
+clim(baRange);
+title('B/A');
+axis image
+colormap pink; colorbar;
+set(gca,'fontsize',font)
+xlabel('Lateral distance (cm)');
+ylabel('Depth (cm)');
+
+colormap(t1,turbo)
+pause(0.1)
+
+
+% Generating cumulative maps
+izBlock = round(z./dz);
+betaC = cumsum(betaL)./izBlock;
+alphaC = cumsum(alphaL)./izBlock;
+
+figure('Units','centimeters', 'Position',[5 5 20 10])
+font = 9;
+tiledlayout(1,2)
+t1 = nexttile;
+imagesc(x*1e2,z*1e2,alphaC); colorbar;
+clim(attRange);
+title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
+axis image
+colorbar;
+set(gca,'fontsize',font)
+xlabel('Lateral distance (cm)');
+ylabel('Depth (cm)');
+
+nexttile; imagesc(x*1e2,z*1e2,(betaC-1)*2); colorbar;
+clim(baRange);
+title('B/A');
+axis image
+colormap pink; colorbar;
+set(gca,'fontsize',font)
+xlabel('Lateral distance (cm)');
+ylabel('Depth (cm)');
+
+colormap(t1,turbo)
+pause(0.1)
+
+%%
 bzf = [];
-freqVec = [4,5,6];
 for iFreq = 1:length(freqVec)
-    betaL = ones(size(Xmesh))*(1+6/2);
-    betaL(inc) = (1+9/2);
-    alphaL = ones(size(Xmesh))*0.1;
-    alphaL(inc) = 0.15;
     freq = freqVec(iFreq);
-    
-    % figure('Units','centimeters', 'Position',[5 5 20 10])
-    % font = 9;
-    % tiledlayout(1,2)
-    % t1 = nexttile;
-    % imagesc(x,z,alphaL); colorbar;
-    % clim([0 0.2]);
-    % title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
-    % axis image
-    % colorbar;
-    % set(gca,'fontsize',font)
-    % xlabel('Lateral distance (cm)');
-    % ylabel('Depth (cm)');
-    % 
-    % nexttile; imagesc(x,z,(betaL-1)*2); colorbar;
-    % clim([5 10]);
-    % title('B/A');
-    % axis image
-    % colormap pink; colorbar;
-    % set(gca,'fontsize',font)
-    % xlabel('Lateral distance (cm)');
-    % ylabel('Depth (cm)');
-    
-    % colormap(t1,turbo)
-    % pause(0.1)
-    
-    % Generating cumulative maps
-    izBlock = round(z./dz);
-    betaC = cumsum(betaL)./izBlock;
-    alphaC = cumsum(alphaL)./izBlock;
-    
-    % figure('Units','centimeters', 'Position',[5 5 20 10])
-    % font = 9;
-    % tiledlayout(1,2)
-    % t1 = nexttile;
-    % imagesc(x*1e2,z*1e2,alphaC); colorbar;
-    % clim([0 0.2]);
-    % title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
-    % axis image
-    % colorbar;
-    % set(gca,'fontsize',font)
-    % xlabel('Lateral distance (cm)');
-    % ylabel('Depth (cm)');
-    % 
-    % nexttile; imagesc(x*1e2,z*1e2,(betaC-1)*2); colorbar;
-    % clim([5 10]);
-    % title('B/A');
-    % axis image
-    % colormap pink; colorbar;
-    % set(gca,'fontsize',font)
-    % xlabel('Lateral distance (cm)');
-    % ylabel('Depth (cm)');
-    % 
-    % colormap(t1,turbo)
-    % pause(0.1)
-    
     alphaCnp = alphaC/NptodB*100 * freq^2; % dB/cm -> Np/m
     mzaxis = betaC.*(1 - exp(-2*alphaCnp.*Zmesh) )./alphaCnp./Zmesh + ...
         0.0*randn(size(Xmesh));
-    %% Getting system
-    % Subsampling parameters
-    wl = 1540/5/1e6; % Mean central frequency
-    blockParams.blockSize = [10 10]*wl; 
-    blockParams.overlap = 0.8;
-    blockParams.zlim = [0.3; 5.5]/100;
-    blockParams.xlim = [-2; 2]/100;
     
+    % Getting system
+    wl = 1540/5/1e6; % Mean central frequency
+    blockParams.blockSize = [15 15]*wl; 
+    blockParams.overlap = 0.8;
+    blockParams.zlim = [0.5; 5]/100;
+    blockParams.xlim = [-2.5; 2.5]/100;
+    
+    mzaxis = mzaxis + 5*randn(size(mzaxis));
     [bz,xP,zP] = getMeanBlock(mzaxis,x,z,blockParams);
         bzf(:,:,iFreq) = bz;
 end
 
 
-bzf = bzf + 0.03*randn(size(bzf));
+% bzf = bzf + 0.1*randn(size(bzf));
 
-figure,
+figure('Units','centimeters', 'Position',[5 5 20 6]),
 tiledlayout(1,3)
 nexttile,
 imagesc(xP*100,zP*100,bzf(:,:,1), [2 7])
@@ -180,7 +187,7 @@ xlabel('Number of iterations')
 ylabel('Loss')
 
 figure; imagesc(xP*1e3,zP*1e3,estAClm); colorbar;
-clim([0 0.2]);
+clim(attRange);
 title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/100')
 axis image
 colormap turbo; colorbar;
@@ -189,7 +196,7 @@ ylabel('Depth (mm)');
 
 
 figure; imagesc(xP*1e3,zP*1e3,estBAlm); colorbar;
-clim([5 10]);
+clim(baRange);
 title('B/A');
 title(['B/A = ',num2str(median(estBAlm(:),'omitnan'),'%.1f')]);
 axis image
@@ -222,11 +229,11 @@ P = kron(speye(n),P);
 estBAinst = IRLS_TV(estBAcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
 estBAinst = reshape(estBAinst,m-1,n);
 
-estACinst = IRLS_TV(estACcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
+estACinst = IRLS_TV(estACcum(:),P,muLocal/100,m-1,n,tol,[],ones((m-1)*n,1));
 estACinst = reshape(estACinst,m-1,n);
 
 figure; imagesc(xP*1e3,zP*1e3,estACinst); colorbar;
-clim([0 0.2]);
+clim(attRange);
 title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
 axis image
 colormap turbo; colorbar;
@@ -240,7 +247,7 @@ hold off
 
 
 figure; imagesc(xP*1e3,zP*1e3,estBAinst); colorbar;
-clim([5 11]);
+clim(baRange);
 title('B/A');
 axis image
 colormap pink; colorbar;
@@ -278,7 +285,7 @@ std(estBAinst(back), [] ,'omitnan'));
 
 % Hyperparameters TEST
 tol = 1e-3;
-muAlpha = 1e-4; muBeta = 1e-4;
+muAlpha = 1e-3; muBeta = 1e-4;
 rho = 1;
 maxIte = 150;
 
@@ -331,7 +338,7 @@ while abs(error) > tol && ite < maxIte
         ite,Fid(ite+1),Reg(ite+1),Dual(ite+1))
     error = Fid(ite+1) + Reg(ite+1) - Fid(ite) - Reg(ite);
 
-    if mod(ite,10)==1
+    if true %mod(ite,2)==1
         alphaArr = reshape(DP*u(1:m*n),[m,n]);
         betaArr = reshape(DP*u(1+m*n:end),[m,n]);
         estACtv = alphaArr*NptodB/100;
@@ -340,7 +347,7 @@ while abs(error) > tol && ite < maxIte
         figure; tiledlayout(1,2)
         t1 = nexttile;
         imagesc(xP*1e3,zP*1e3,estACtv); colorbar;
-        clim([0 0.2]);
+        clim(attRange);
         title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
         axis image
         colorbar;
@@ -353,7 +360,7 @@ while abs(error) > tol && ite < maxIte
         hold off
 
         nexttile; imagesc(xP*1e3,zP*1e3,estBAtv); colorbar;
-        clim([5 11]);
+        clim(baRange);
         title('B/A');
         axis image
         colormap pink; colorbar;
@@ -408,7 +415,7 @@ std(estBAtv(back), [] ,'omitnan'));
 
 
 figure; imagesc(xP*1e3,zP*1e3,estACtv); colorbar;
-clim([0 0.2]);
+clim(attRange);
 title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
 axis image
 colormap turbo; colorbar;
@@ -422,7 +429,7 @@ hold off
 
 
 figure; imagesc(xP*1e3,zP*1e3,estBAtv); colorbar;
-clim([5 11]);
+clim(baRange);
 title('B/A');
 axis image
 colormap pink; colorbar;
@@ -496,7 +503,7 @@ pause(0.1)
 % 
 % 
 % figure; imagesc(x*1e3,z*1e3,estACtv); colorbar;
-% clim([0 0.2]);
+% clim(attRange);
 % title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/cm')
 % axis image
 % colormap pink; colorbar;
@@ -510,7 +517,7 @@ pause(0.1)
 % 
 % 
 % figure; imagesc(x*1e3,z*1e3,estBAtv); colorbar;
-% clim([5 10]);
+% clim(baRange);
 % title('B/A');
 % axis image
 % colormap pink; colorbar;

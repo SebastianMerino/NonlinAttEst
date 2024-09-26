@@ -22,6 +22,11 @@ reg(1) = mu1*TVcalc_isotropic(DP*B,m,n,mask) + ...
 ite  = 0;
 error = 1;
 
+% DP2 = [-1 1].*ones(m,1);
+% DP2 = spdiags(DP2, [-1 0],m,m);
+% DP2(1,:) = DP2(2,:);
+% DP2 = kron(speye(n),DP2);
+
 while abs(error) > tol && ite < 200
     ite = ite + 1;
     
