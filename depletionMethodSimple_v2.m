@@ -3,16 +3,17 @@
 
 clear; close all; clc;
 addpath(genpath(pwd))
-% baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
-%     'BA_AC_joint\rfdata'];
-% baseDir = 'C:\Users\smerino.C084288\Documents\MATLAB\BA_AC_joint\rfdata';
-baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\bfFn2';
 
-freq = 5; alphaInc = 10;
-alphaStr = num2str(alphaInc,"%02d");
-fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
-    "_nc10_400kPa";
-fileRef = "RFfn2_PWNE"+freq+"MHz_samBA12_att0p1f2inc0p10_nc10_400kPa";
+% baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\rfdata';
+% fileSam = "rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720";
+% fileRef = "rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720";
+% baseDir = "C:\Users\sebas\Documents\Data\Nonlinearity\mySimulations";
+% fileSam = "rf_baBack6_baInc9_att0p1";
+% fileRef = "rf_ba8_att0p12_ref";
+samDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\fn2';
+fileSam = "RFfn2_PWNE5MHz_samincBA6inc12_att0p1f2inc0p10_nc10_400kPa";
+refDir = "C:\Users\sebas\Documents\Data\Nonlinearity\homoAttMismatch\fn2";
+fileRef = "RFfn2_PWNE5MHz_refBA6_att0p10f2p0_400kPa";
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));
@@ -21,28 +22,23 @@ centerDepth = 22.5e-3;
 
 % Hyperparameters
 freqC = 5; 
-zIni = 0.3; zFin = 5.5;
-wl = 1540/freqC/1e6;
 v = 5; % scaling factor
 
 % Known variables
-betaR = 1 + 12/2;
+betaR = 1 + 6/2;
 alphaR = 0.1*freqC.^2/NptodB*100;
 alphaS = 0.1*freqC.^2/NptodB*100;
-% betaR = 1 + 8/2;
-% alphaR = 0.12*freqC.^2/NptodB*100;
-% alphaS = 0.1*freqC.^2/NptodB*100;
 
 %% Loading and cropping rf data
 % Sample
-sample = load(fullfile(baseDir,fileSam));
+sample = load(fullfile(samDir,fileSam));
 z = sample.z';
 x = sample.x;
 fs = sample.fs;
 rfL = sample.rf1(:,:,1);
 rfH = sample.rf2(:,:,1);
 % Reference
-ref = load(fullfile(baseDir,fileRef));
+ref = load(fullfile(refDir,fileRef));
 rfLR = ref.rf1(:,:,1);
 rfHR = ref.rf2(:,:,1);
 
@@ -59,25 +55,25 @@ PHRfull = getFilteredPressure(rfHR,fs,freqC*1e6,freqTol*1e6,order);
 
 
 % Plotting Bmode
-% Bmode = db(PLfull);
-% Bmode = Bmode - max(Bmode(:));
-% figure, imagesc(x*100,z*100,Bmode, [-50 0])
-% hold on
-% rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
-%     2*radiusDisk,2*radiusDisk]*100, 'Curvature',1,...
-%     'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
-% hold off
-% axis image
-% colormap gray
-% xlabel('Lateral [cm]')
-% ylabel('Depth [cm]')
+Bmode = db(PLfull(z>0.5e-2,:));
+Bmode = Bmode - max(Bmode(:));
+figure, imagesc(x*100,z(z>0.5e-2)*100,Bmode, [-50 0])
+hold on
+rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
+    2*radiusDisk,2*radiusDisk]*100, 'Curvature',1,...
+    'EdgeColor','b', 'LineStyle','--', 'LineWidth',2)
+hold off
+axis image
+colormap gray
+xlabel('Lateral [cm]')
+ylabel('Depth [cm]')
 
 %% 
 % Subsampling parameters
 wl = 1540/freqC/1e6; % Mean central frequency
-blockParams.blockSize = [20 20]*wl; 
+blockParams.blockSize = [10 20]*wl; 
 blockParams.overlap = 0.8;
-blockParams.zlim = [0.3; 5.5]/100;
+blockParams.zlim = [0.5; 5.5]/100;
 blockParams.xlim = [-3; 3]/100;
 [meanP,xP,zP] = getMeanBlock(cat(3,PLfull,PHfull,PLRfull,PHRfull),x,z,...
     blockParams);
@@ -86,12 +82,15 @@ PH = meanP(:,:,2);
 PLR = meanP(:,:,3);
 PHR = meanP(:,:,4);
 
-% figure,imagesc(x*100,z*100,PL)
+% figure,imagesc(x*100,z*100,abs(v*PL-PH))
 % axis image
 % colorbar
+
+
 %% Getting B/A
 betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
+
 % betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*...
 %     abs(v^3*PLR-PHR)./abs(v^3*PL-PH) ).*...
 %     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
@@ -114,7 +113,7 @@ colormap pink
 
 %% Local B/A maps with regularization
 [m,n]= size(BA);
-muLocal = 0.001; %0.001;
+muLocal = 0.1; %0.001;
 tol = 1e-3;
 
 dzP = zP(2)-zP(1);

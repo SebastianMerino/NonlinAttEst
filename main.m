@@ -14,7 +14,7 @@ centerDepth = 22.5e-3;
 baRange = [5 13];
 attRange = [0.09,0.17];
 
-alphaInc = 16;
+alphaInc = 0.16;
 
 alphaInit = 0.1;
 betaInit = 6;
@@ -43,7 +43,7 @@ freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
 bzf = [];
 for iFreq = 1:length(freqVec)
     freq = freqVec(iFreq);
-    alphaStr = num2str(alphaInc,"%02d");
+    alphaStr = num2str(alphaInc*100,"%02d");
     fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
         "_nc10_400kPa";
     fileRef = "RFfn2_PWNE"+freq+"MHz_samBA12_att0p1f2inc0p10_nc10_400kPa";
@@ -113,41 +113,41 @@ alphaL = ones(size(Xmesh))*alphaInit;
 betaL = ones(size(Xmesh))*(1+betaInit/2);
 u0 = [alphaL(:)*100/NptodB;betaL(:)];
 
-inc = Xmesh.^2 + (Zmesh-centerDepth).^2 <= (radiusDisk).^2;
-[m,n,p] = size(bzf);
-alphaL(inc) = 0.16;
-izBlock = 1:length(zP);
-P = sparse(tril(ones(m)));
-P = P./izBlock';
-betaC = P*(betaL);
-alphaC =  P*(alphaL);
-u0 = [alphaC(:)*100/NptodB;betaC(:)];
-
-figure,
-tiledlayout(1,2)
-nexttile,
-imagesc(xP*1e3,zP*1e3,alphaC)
-clim(attRange);
-title('Init \alpha_0 in \alpha(f) = \alpha_0 \times f^2')
-axis image
-colormap turbo; colorbar;
-xlabel('Lateral distance (mm)');
-ylabel('Depth (mm)');
-t2 = nexttile;
-imagesc(xP*1e3,zP*1e3,(betaC-1)*2)
-clim(baRange);
-title('Init B/A');
-axis image
-colormap(t2,pink); colorbar;
-xlabel('Lateral distance (mm)');
-ylabel('Depth (mm)');
-pause(0.5)
+% inc = Xmesh.^2 + (Zmesh-centerDepth).^2 <= (radiusDisk).^2;
+% [m,n,p] = size(bzf);
+% alphaL(inc) = 0.16;
+% izBlock = 1:length(zP);
+% P = sparse(tril(ones(m)));
+% P = P./izBlock';
+% betaC = P*(betaL);
+% alphaC =  P*(alphaL);
+% u0 = [alphaC(:)*100/NptodB;betaC(:)];
+% 
+% figure,
+% tiledlayout(1,2)
+% nexttile,
+% imagesc(xP*1e3,zP*1e3,alphaC)
+% clim(attRange);
+% title('Init \alpha_0 in \alpha(f) = \alpha_0 \times f^2')
+% axis image
+% colormap turbo; colorbar;
+% xlabel('Lateral distance (mm)');
+% ylabel('Depth (mm)');
+% t2 = nexttile;
+% imagesc(xP*1e3,zP*1e3,(betaC-1)*2)
+% clim(baRange);
+% title('Init B/A');
+% axis image
+% colormap(t2,pink); colorbar;
+% xlabel('Lateral distance (mm)');
+% ylabel('Depth (mm)');
+% pause(0.5)
 
 %% Gauss-Newton with LM
 [m,n,p] = size(bzf);
 tol = 1e-3;
 maxIte = 200;
-muAlpha = 100;
+muAlpha = 0;
 muBeta = 0;
 regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
 
@@ -286,6 +286,7 @@ fprintf('AC inc: %.2f +/- %.2f\n', mean(estACinst(inc),'omitnan'), ...
 std(estACinst(inc), [] ,'omitnan'));
 fprintf('AC back: %.2f +/- %.2f\n', mean(estACinst(back),'omitnan'), ...
 std(estACinst(back), [] ,'omitnan'));
+
 %% ADMM
 % Optimizes F(u) + R(v)
 % Hyperparameters
@@ -410,10 +411,10 @@ estBAtv = 2*(betaArr-1);
 inc = Xmesh.^2 + (Zmesh-centerDepth).^2 < (radiusDisk-1e-3).^2;
 back = Xmesh.^2 + (Zmesh-centerDepth).^2 > (radiusDisk+1e-3).^2;
 
-fprintf('AC: %.3f +/- %.3f\n', mean(estACtv(:), 'omitnan'), ...
-std(estACtv(:), [] ,'omitnan'));
-fprintf('B/A: %.2f +/- %.2f\n', mean(estBAtv(:),'omitnan'), ...
-std(estBAtv(:), [] ,'omitnan'));
+fprintf('AC inc: %.2f +/- %.2f\n', mean(estACtv(inc),'omitnan'), ...
+std(estACtv(inc), [] ,'omitnan'));
+fprintf('AC back: %.2f +/- %.2f\n', mean(estACtv(back),'omitnan'), ...
+std(estACtv(back), [] ,'omitnan'));
 
 fprintf('B/A inc: %.2f +/- %.2f\n', mean(estBAtv(inc),'omitnan'), ...
 std(estBAtv(:), [] ,'omitnan'));
@@ -452,49 +453,6 @@ pause(0.1)
 
 % save_all_figures_to_directory(fullfile(baseDir,'24-09-19'),'fig')
 % close all
-%% Utility functions
-function [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams)
-%   Gets a 2D map of measurements (mz in the IUS 2024 paper)
-%   given the rf data and some hyperparameters. Downsamples in the axial
-%   and lateral directions
 
-z = medium.z;
-x = medium.x;
-fs = medium.fs;
-rfL = medium.rfL;
-rfH = medium.rfH;
-rfLR = medium.rfLR;
-rfHR = medium.rfHR;
-v = medium.v; 
-
-% Filtering
-freqC = filterParams.freqC*1e6;
-freqTol = filterParams.freqTol*1e6;
-order = round(filterParams.nCycles/freqC*fs);
-PLfull = getFilteredPressure(rfL,fs,freqC,freqTol,order);
-PHfull = getFilteredPressure(rfH,fs,freqC,freqTol,order);
-PLRfull = getFilteredPressure(rfLR,fs,freqC,freqTol,order);
-PHRfull = getFilteredPressure(rfHR,fs,freqC,freqTol,order);
-
-% In case there is an additional dimension
-PLfull = mean(PLfull,3);
-PHfull = mean(PHfull,3);
-PLRfull = mean(PLRfull,3);
-PHRfull = mean(PHRfull,3);
-
-% Block averaging
-[meanP,xP,zP] = getMeanBlock(cat(3,PLfull,PHfull,PLRfull,PHRfull),x,z,...
-    blockParams);
-PL = meanP(:,:,1);
-PH = meanP(:,:,2);
-PLR = meanP(:,:,3);
-PHR = meanP(:,:,4);
-
-% Getting measurements
-attRef = medium.alphaR*(freqC/1e6)^2;
-bz = medium.betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
-    ( 1-exp(-2*attRef*zP) )/attRef./zP;
-
-end
 % ---------------------------------------------------------------------- %
 % ---------------------------------------------------------------------- %

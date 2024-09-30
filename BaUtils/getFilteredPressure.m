@@ -6,13 +6,14 @@ t = (0:size(rf,1)-1)'./fs;
 rfMod = rf.*exp(1j*2*pi*freqC*t);
 
 % if plotS
-% Srf = db(mean(abs(fft(rf)),2));
+% Srf = db(mean(mean(abs(fft(rf)),2),3));
 % Srf = Srf - max(Srf);
 % f = (0:size(rf,1)-1)'./size(rf,1)*fs;
 % figure, plot(f,Srf)
 % xline(freqC-freqTol)
 % xline(freqC+freqTol)
-% xlim([0 2*freqC])
+% xlim([0 12e6])
+% ylim([-50 0])
 % end
 
 freqNyq = fs/2;
