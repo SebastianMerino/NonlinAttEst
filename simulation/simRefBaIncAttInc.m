@@ -4,6 +4,9 @@
 clearvars; close all; clc;
 %addpath(genpath([pwd,'/k-wave-toolbox-version-1.3']))
 % simulation settings
+addpath(genpath('/opt/MATLAB Add-Ons'));
+addpath(genpath(pwd));
+
 DATA_CAST       = 'gpuArray-single';     % set to 'single' or 'gpuArray-single' to speed up computations
 RUN_SIMULATION  = true;         % set to false to reload previous results instead of running simulation
 
@@ -169,7 +172,6 @@ for tone_burst_freq_MHz = 4:6
                 filename = fullfile(pwd,'random_media',['BAPW_STD2_REF2024_',num2str(aa)]);
                 %density = 1000;
                 load(filename);
-                density_map = density; clear density;
                 % density_map = single(1000 * (1 + 0.02*randn(Nx,Ny_tot,Nz)));
                 
                 % update the command line status
@@ -192,7 +194,7 @@ for tone_burst_freq_MHz = 4:6
                 param.BonA_map_setting = BonA_map(:,:,1);
                 param.att_power_law = medium.alpha_power;
 
-                sensor_data = kspaceFirstOrder3DG(kgrid, medium, transducer, transducer, input_args{:});
+                sensor_data = kspaceFirstOrder3D(kgrid, medium, transducer, transducer, input_args{:});
 
                 %save FULLpwnoelev_sensor_data sensor_data;
                 %save FULLpwnoelev_all_data;
