@@ -97,7 +97,7 @@ for ii = 1:6 % number of sims
     param.alpha_coeff = att;
     param.BonA = ba;
     param.alpha_power = medium.alpha_power;
-    param.density = medium.density;
+    param.densityStd = densityStd;
 
     %%
     % =========================================================================
@@ -161,7 +161,7 @@ for ii = 1:6 % number of sims
             'DataCast', DATA_CAST, 'DataRecast', true, 'PlotSim', false,...
             'DataPath',fullfile(pwd,'temp')};
         
-        for rr=1:3
+        for rr=1:4
             medium.density = rho0*(1 + densityStd*randn(Nx,Ny_tot,Nz));
             sensor_data = kspaceFirstOrder3DG(kgrid, medium, transducer, transducer, input_args{:});
             rf_prebf(:,:,rr) = sensor_data';
