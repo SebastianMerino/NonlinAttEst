@@ -1,4 +1,4 @@
-function jcb = jacobianFreq(u,z,freq)
+function jcb = jacobianFreq(u,z,freq, varargin)
 % Gets the jacobian matrix, of the function specified in modelFreq.m
 % given u = [a' b']', the column vector z and the row vector freq.
 %   a is in Np/m/MHz^2, 
@@ -11,7 +11,11 @@ m = length(z);     % number of rows
 n = length(u)/2/m; % number of cols
 p = length(freq);  % number of frequency points
 
-f2(1,1,:) = freq.^2;
+if nargin == 3
+    f2(1,1,:) = freq.^2;
+else
+    f2(1,1,:) = freq.^varargin{1};
+end
 Z = repmat(z,1,n);
 f2Z = f2.*Z;
 

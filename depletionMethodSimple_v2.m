@@ -10,10 +10,14 @@ addpath(genpath(pwd))
 % baseDir = "C:\Users\sebas\Documents\Data\Nonlinearity\mySimulations";
 % fileSam = "rf_baBack6_baInc9_att0p1";
 % fileRef = "rf_ba8_att0p12_ref";
+% samDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\fn2';
+% fileSam = "RFfn2_PWNE5MHz_samincBA6inc12_att0p1f2inc0p10_nc10_400kPa";
+% refDir = "C:\Users\sebas\Documents\Data\Nonlinearity\homoAttMismatch\fn2";
+% fileRef = "RFfn2_PWNE5MHz_refBA6_att0p10f2p0_400kPa";
 samDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\fn2';
 fileSam = "RFfn2_PWNE5MHz_samincBA6inc12_att0p1f2inc0p10_nc10_400kPa";
-refDir = "C:\Users\sebas\Documents\Data\Nonlinearity\homoAttMismatch\fn2";
-fileRef = "RFfn2_PWNE5MHz_refBA6_att0p10f2p0_400kPa";
+refDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\uniformBA_inclusionACS';
+fileRef = "RFfn2_PWNE5MHz_samBA12_att0p1f2inc0p10_nc10_400kPa";
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));
@@ -25,7 +29,7 @@ freqC = 5;
 v = 5; % scaling factor
 
 % Known variables
-betaR = 1 + 6/2;
+betaR = 1 + 12/2;
 alphaR = 0.1*freqC.^2/NptodB*100;
 alphaS = 0.1*freqC.^2/NptodB*100;
 
@@ -71,7 +75,7 @@ ylabel('Depth [cm]')
 %% 
 % Subsampling parameters
 wl = 1540/freqC/1e6; % Mean central frequency
-blockParams.blockSize = [10 20]*wl; 
+blockParams.blockSize = [10 10]*wl; 
 blockParams.overlap = 0.8;
 blockParams.zlim = [0.5; 5.5]/100;
 blockParams.xlim = [-3; 3]/100;
@@ -96,6 +100,7 @@ betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
 %     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
 
 BA = 2*(betaS-1);
+% BA = 1./betaS;
 cm = 100;
 figure,
 imagesc(xP*cm,zP*cm,BA, [5 14])
@@ -113,7 +118,7 @@ colormap pink
 
 %% Local B/A maps with regularization
 [m,n]= size(BA);
-muLocal = 0.1; %0.001;
+muLocal = 0.01; %0.001;
 tol = 1e-3;
 
 dzP = zP(2)-zP(1);
@@ -129,6 +134,7 @@ P = kron(speye(n),P);
 estBAinst = IRLS_TV(estBAcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
 estBAinst = reshape(estBAinst,m-1,n);
 
+% estBAinst = 2*(1./estBAinst - 1);
 baRange = [5,13];
 figure; 
 im = imagesc(xP*1e3,zP(2:end)*1e3,estBAinst); colorbar;

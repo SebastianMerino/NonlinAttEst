@@ -10,20 +10,17 @@ addpath(genpath(pwd))
 param.instfreq = 'no';   % 'yes' or 'no'
 
 
-baseDir = ['C:\Users\sebas\Documents\MATLAB\totalvarsimul_AC_BA\' ...
-    'BA_AC_joint\rfdata'];
-% fileSam = 'rf_fnum3_PWNE_samBA6_att0p10f2_nc10_400kPa';
-% fileRef = 'rf_fnum3_PWNE_refBA6_att10f2_nc10_400kPa';
-% fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_saminc400_doubleangle720';
-fileSam = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_sam400_doubleangle720';
-fileRef = 'rf_fnum3_SCOMP5MHz_nc10_0p10f2_ref400_doubleangle720';
+samDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\fn2';
+fileSam = "RFfn2_PWNE5MHz_samincBA6inc12_att0p1f2inc0p10_nc10_400kPa";
+refDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\uniformBA_inclusionACS';
+fileRef = "RFfn2_PWNE5MHz_samBA12_att0p1f2inc0p10_nc10_400kPa";
 
 
-load(fullfile(baseDir,fileSam))
+load(fullfile(samDir,fileSam))
 rf = rf1; save('rf_sam_LP','rf','fs','c0','x','z')
 rf = rf2; save('rf_sam_HP','rf','fs','c0','x','z')
 clear rf1 rf2
-load(fullfile(baseDir,fileRef))
+load(fullfile(refDir,fileRef))
 rf = rf1; save('rf_ref_LP','rf','fs','c0','x','z')
 rf = rf2; save('rf_ref_HP','rf','fs','c0','x','z')
 
@@ -40,7 +37,7 @@ param.ACsam = 0.1/NptodB;
 param.APsam = 2;
 param.ACref = 0.1/NptodB;
 param.APref = 2;
-param.BoAref = 6;
+param.BoAref = 12;
 
 % [param.ACsam, param.APsam] = acs_filename(file_sam);
 % [param.ACref, param.APref] = acs_filename(file_ref);

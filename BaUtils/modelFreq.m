@@ -1,4 +1,4 @@
-function mdl = modelFreq(u,z,freq)
+function mdl = modelFreq(u,z,freq, varargin)
 % Evaluates the model given u = [a' b']', the column vector z, and the row
 % vector freq.
 %   a is in Np/m/MHz^2, 
@@ -11,7 +11,11 @@ function mdl = modelFreq(u,z,freq)
 m = length(z);     % number of rows
 n = length(u)/2/m; % number of cols
 
-f2(1,1,:) = freq.^2;
+if nargin == 3
+    f2(1,1,:) = freq.^2;
+else
+    f2(1,1,:) = freq.^varargin{1};
+end
 alphaMap = reshape(u(1:m*n),m,n);
 betaMap = reshape(u(m*n+1:end),m,n);
 

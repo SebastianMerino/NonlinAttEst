@@ -42,7 +42,7 @@ blockParams.xlim = [-2.5; 2.5]/100;
 
 freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
 
-iSim = 6;
+iSim = 8;
 alphaInc = alphaIncVec(iSim);
 
 %% For loop
@@ -78,6 +78,16 @@ for iSim=1:length(alphaIncVec)
         filterParams.freqC = freqVec(iFreq);
         [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);
         bzf(:,:,iFreq) = bz;
+
+        % idz = medium.z>0.5e-2&medium.z<5.5e-2; % true(size(medium.z)); %
+        % bmode = db(hilbert(medium.rfH(idz,:,1)));
+        % bmode = bmode - max(bmode (:));
+        % figure,
+        % imagesc(medium.x*100,medium.z(idz)*100,bmode, [-40 0])
+        % colormap gray
+        % axis image
+        % colorbar
+        % title('B-mode')
     end
 
     %% Initialization

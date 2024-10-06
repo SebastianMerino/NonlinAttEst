@@ -6,7 +6,7 @@ addpath(genpath(pwd))
 
 freqC = 5;
 samDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\fn2';
-resultsDir = fullfile(samDir,"results","ba6inc12DepletionRefba6");
+resultsDir = fullfile(samDir,"results","ba6inc9DepletionRefBack");
 [~,~,~] = mkdir(resultsDir);
 
 refDir = "C:\Users\sebas\Documents\Data\Nonlinearity\homoAttMismatch\fn2";
@@ -26,9 +26,9 @@ v = 5; % scaling factor
 betaR = 1 + 6/2;
 alphaR = 0.1*freqC.^2/NptodB*100;
 alphaS = 0.1*freqC.^2/NptodB*100;
-
+attRange = [0.08,0.20];
 %%
-iSim = 6;
+iSim = 2;
 alphaIncVec = 0.08:0.02:0.22;
 
 %%
@@ -36,7 +36,7 @@ for iSim = 1:length(alphaIncVec)
 alphaInc = alphaIncVec(iSim);
 alphaStr = num2str(round(alphaInc*100),"%02d");
 
-fileSam = "RFfn2_PWNE"+freqC+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
+fileSam = "RFfn2_PWNE"+freqC+"MHz_samincBA6inc9_att0p1f2inc0p"+alphaStr+ ...
     "_nc10_400kPa";
 
 
@@ -82,7 +82,7 @@ title('Bmode')
 %%
 % Subsampling parameters
 wl = 1540/freqC/1e6; % Mean central frequency
-blockParams.blockSize = [20 20]*wl;
+blockParams.blockSize = [15 15]*wl;
 blockParams.overlap = 0.8;
 blockParams.zlim = [0.5; 5.5]/100;
 blockParams.xlim = [-3; 3]/100;
@@ -110,15 +110,15 @@ P = sparse(tril(ones(m)));
 P = P./izBlock';
 alphaC =  P*(alphaL);
 
-% figure,
+figure,
 % tiledlayout(1,2)
 % nexttile,
-% imagesc(xP*1e3,zP*1e3,alphaC)
-% title('Alpha cumulative')
-% axis image
-% colormap turbo; colorbar;
-% xlabel('Lateral distance (mm)');
-% ylabel('Depth (mm)');
+imagesc(xP*1e3,zP*1e3,alphaC/freqC.^2*NptodB/100, attRange)
+title('Alpha cumulative')
+axis image
+colormap turbo; colorbar;
+xlabel('Lateral distance (mm)');
+ylabel('Depth (mm)');
 % nexttile,
 % imagesc(xP,zP,alphaSZ)
 % axis image
@@ -130,9 +130,6 @@ alphaRZ = alphaR.*Z;
 % betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
 %     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
 
-% betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*...
-%     abs(v^3*PLR-PHR)./abs(v^3*PL-PH) ).*...
-%     ( 1-exp(-2*alphaR*zP) )./( 1-exp(-2*alphaS*zP) ) *alphaS/alphaR;
 
 betaS = betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
     ( 1-exp(-2*alphaRZ) )./( 1-exp(-2*alphaSZ) ) .*alphaSZ./alphaRZ;
@@ -192,7 +189,7 @@ metrics(iSim) = getMetrics(baInterp,inc,back,'Dep',alphaInc);
 %% Plots
 figure; imagesc(xP*1e3,zP(2:end)*1e3,estBAinst); colorbar;
 clim(baRange);
-title('ADMM, B/A');
+title('Depletion, B/A');
 axis image
 colormap pink; colorbar;
 xlabel('Lateral distance (mm)');
@@ -218,7 +215,7 @@ pause(0.1)
 end
 
 T = [struct2table(metrics)];
-writetable(T,fullfile(resultsDir,'ba6inc12Depletion.xlsx'))
+writetable(T,fullfile(resultsDir,'ba6inc9Depletion.xlsx'))
 
 %%
 function metrics = getMetrics(BA,inc,back,method,alphaInc)

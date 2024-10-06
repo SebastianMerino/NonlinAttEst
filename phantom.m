@@ -1,11 +1,13 @@
-dataDir = 'C:\Users\sebas\Documents\Data\adriana\data';
-refDir = 'C:\Users\sebas\Documents\Data\adriana\ref';
+setup
+
+dataDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\adriana2\sam';
+refDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\adriana2';
 
 targetFiles = dir([dataDir,'\*.mat']);
 
 %%
 blocksize = 12;     % Block size in wavelengths
-freq_L = 4.5e6; freq_H = 5.5e6;
+% freq_L = 3e6; freq_H = 6.5e6;
 freq_C = (freq_L + freq_H)/2;
 
 overlap_pc      = 0.8;
@@ -52,7 +54,7 @@ fs = out.fs;
 
 %% Cropping and finding sample sizes
 x_inf = -2; x_sup = 2;
-z_inf = 0.5; z_sup = 6;
+z_inf = 0.2; z_sup = 3.5;
 
 % Limits for ACS estimation
 ind_x = x_inf <= x & x <= x_sup;

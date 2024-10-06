@@ -4,7 +4,7 @@
 setup;
 % baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\homoAttMismatch\f2';
 % baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\rfdata';
-baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\bfFn2';
+baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\fn2';
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));

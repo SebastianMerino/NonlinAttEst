@@ -160,11 +160,13 @@ for ii = 1:6 % number of sims
             'PMLInside', false, 'PMLSize', [pml_x_size, pml_y_size, pml_z_size], ...
             'DataCast', DATA_CAST, 'DataRecast', true, 'PlotSim', false,...
             'DataPath',fullfile(pwd,'temp')};
-
-        sensor_data = kspaceFirstOrder3DG(kgrid, medium, transducer, transducer, input_args{:});
         
+        for rr=1:3
+            medium.density = rho0*(1 + densityStd*randn(Nx,Ny_tot,Nz));
+            sensor_data = kspaceFirstOrder3DG(kgrid, medium, transducer, transducer, input_args{:});
+            rf_prebf(:,:,rr) = sensor_data';
+        end
         fs = 1/kgrid.dt;
-        rf_prebf = sensor_data';
 
         file_out = ['PWNE_5MHz_homo_BA',...
             num2str(ba),'_att0p',num2str(att*10,'%.1i'),...
