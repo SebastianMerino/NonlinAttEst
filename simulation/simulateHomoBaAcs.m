@@ -3,8 +3,8 @@
 
 clearvars; close all; clc;
 % simulation settings
-% addpath(genpath('/opt/MATLAB Add-Ons'));
-addpath(genpath(pwd));
+addpath(genpath('/opt/MATLAB Add-Ons'));
+% addpath(genpath(pwd));
 
 DATA_CAST       = 'gpuArray-single';     % set to 'single' or 'gpuArray-single' to speed up computations
 RUN_SIMULATION  = true;         % set to false to reload previous results instead of running simulation
@@ -174,6 +174,5 @@ for rr=1:4
         end
     end
 end
-
 return
 
