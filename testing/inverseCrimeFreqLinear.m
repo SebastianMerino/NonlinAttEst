@@ -19,7 +19,7 @@ z = (0:m-1)'*dz;
 baRange = [5 13];
 attRange = [0.05,0.2];
 
-freqVec = [4,5,6];
+freqVec = [4,4.5,5,5.5,6];
 
 %% Ideal maps
 % Generating local maps
@@ -29,7 +29,7 @@ inc = Xmesh.^2 + (Zmesh-centerDepth).^2 <= (radiusDisk).^2;
 betaL = ones(size(Xmesh))*(1+6/2);
 betaL(inc) = (1+12/2);
 alphaL = ones(size(Xmesh))*0.1;
-alphaL(inc) = 0.1;
+alphaL(inc) = 0.15;
 
 figure('Units','centimeters', 'Position',[5 5 20 10])
 font = 9;
@@ -92,7 +92,8 @@ bzf = [];
 for iFreq = 1:length(freqVec)
     freq = freqVec(iFreq);
     alphaCnp = alphaC/NptodB*100 * freq^2; % dB/cm -> Np/m
-    mzaxis = betaC.*(1 - exp(-2*alphaCnp.*Zmesh) )./alphaCnp./Zmesh;
+    mzaxis = betaC.*(1 - exp(-2*alphaCnp.*Zmesh) )./alphaCnp./Zmesh + ...
+        0.0*randn(size(Xmesh));
     
     % Getting system
     wl = 1540/5/1e6; % Mean central frequency
@@ -101,7 +102,7 @@ for iFreq = 1:length(freqVec)
     blockParams.zlim = [0.5; 5]/100;
     blockParams.xlim = [-2.5; 2.5]/100;
     
-    mzaxis = mzaxis + 1*randn(size(mzaxis));
+    mzaxis = mzaxis + 0.1*randn(size(mzaxis));
     [bz,xP,zP] = getMeanBlock(mzaxis,x,z,blockParams);
         bzf(:,:,iFreq) = bz;
 end
@@ -141,43 +142,46 @@ colormap parula
 [m,n,p] = size(bzf);
 tol = 1e-3;
 maxIte = 400;
-muAlpha = 0.1;
-muBeta = 0.1;
-% muAlpha = 0; muBeta = 0;
 betaIni = 1+(10.5)/2;
-alphaIni = 0.08/NptodB*100;
-
-u = [alphaIni*ones(n*m,1);betaIni*ones(n*m,1)];
-regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
+alpha0Ini = 0/NptodB*100;
+alpha1Ini = 0.08/NptodB*100;
+u = [alpha0Ini*ones(n*m,1);alpha1Ini*ones(n*m,1);betaIni*ones(n*m,1)];
+% muAlpha = 0; muBeta = 0;
+% regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
+regMatrix = 0;
 
 loss = [];
-loss(1) = 0.5*norm(modelFreq(u,zP,freqVec) - bzf(:))^2;
+loss(1) = 0.5*norm(modelFreqLinear(u,zP,freqVec) - bzf(:))^2;
 
 ite = 1;
 tic 
 while true
-    jcb = jacobianFreq(u,zP,freqVec);
-    res = modelFreq(u,zP,freqVec) - bzf(:);
+    jcb = jacobianFreqLinear(u,zP,freqVec);
+    res = modelFreqLinear(u,zP,freqVec) - bzf(:);
     [step,~] = pcg(jcb'*jcb + regMatrix,jcb'*-res, tol, 200);
     % step = (jcb'*jcb + regMatrix)\(jcb'*-res);
     u = u + step;
 
-    loss(ite+1) = 0.5*norm(modelFreq(u,zP,freqVec) - bzf(:))^2;
+    loss(ite+1) = 0.5*norm(modelFreqLinear(u,zP,freqVec) - bzf(:))^2;
     if abs(loss(ite+1) - loss(ite))<tol || ite == maxIte, break; end
     ite = ite + 1;
 end
 toc
+%%
+attRange = [1,2.2];
+baRange = [6,15];
+alpha0Map = reshape(u(1:m*n),m,n);
+alpha1Map = reshape(u(m*n+1:2*m*n),m,n);
+betaMap = reshape(u(2*m*n+1:end),m,n);
 
-alphaArr = u(1:n*m);
-betaArr = u(n*m+1:end);
+estAC0lm = reshape(alpha0Map*NptodB/100,[m,n]);
+estACSlm = reshape(alpha1Map*NptodB/100,[m,n]);
+estBAlm = reshape(2*(betaMap-1),[m,n]);
 
-estAClm = reshape(alphaArr*NptodB/100,[m,n]);
-estBAlm = reshape(2*(betaArr-1),[m,n]);
-
-fprintf('AC: %.3f +/- %.3f\n', mean(estAClm(:), 'omitnan'), ...
-    std(estAClm(:), [] ,'omitnan'));
-fprintf('B/A: %.2f +/- %.2f\n', mean(estBAlm(:), 'omitnan'), ...
-    std(estBAlm(:), [] ,'omitnan'));
+% fprintf('AC: %.3f +/- %.3f\n', mean(estAClm(:), 'omitnan'), ...
+%     std(estAClm(:), [] ,'omitnan'));
+% fprintf('B/A: %.2f +/- %.2f\n', mean(estBAlm(:), 'omitnan'), ...
+%     std(estBAlm(:), [] ,'omitnan'));
 
 figure('Units','centimeters', 'Position',[5 5 10 5]), 
 plot(loss, 'LineWidth',2)
@@ -185,9 +189,16 @@ xlim([2 length(loss)])
 xlabel('Number of iterations')
 ylabel('Loss')
 
-figure; imagesc(xP*1e3,zP*1e3,estAClm); colorbar;
+figure; imagesc(xP*1e3,zP*1e3,estAC0lm); colorbar;
+title('\alpha_0')
+axis image
+colormap turbo; colorbar;
+xlabel('Lateral distance (mm)');
+ylabel('Depth (mm)');
+
+figure; imagesc(xP*1e3,zP*1e3,estACSlm); colorbar;
 clim(attRange);
-title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2 dB/100')
+title('ACS')
 axis image
 colormap turbo; colorbar;
 xlabel('Lateral distance (mm)');
@@ -209,7 +220,7 @@ pause(0.5)
 
 %% Inversion, Coila's implementation
 zBlock = zP; xBLock = xP; 
-muLocal = 0.01;
+muLocal = 0.1;
 dzBlock = zBlock(2)-zBlock(1);
 izBlock = round(zBlock./dzBlock);
 
@@ -218,7 +229,7 @@ factorq = izBlock(1)./izBlock ;
 estBAcum = estBAlm - estBAlm(1,:).*factorq; 
 estBAcum = estBAcum(2:end,:);
 
-estACcum = estAClm - estAClm(1,:).*factorq; 
+estACcum = estACSlm - estACSlm(1,:).*factorq; 
 estACcum = estACcum(2:end,:);
 
 
@@ -277,16 +288,16 @@ std(estBAinst(back), [] ,'omitnan'));
 
 %% ADMM
 % % Hyperparameters BEST
-tol = 1e-3;
-muAlpha = 1e-1; muBeta = 1e-2;
-rho = 0.1;
-maxIte = 200;
+% tol = 1e-3;
+% muAlpha = 1e0; muBeta = 1e-1;
+% rho = 10;
+% maxIte = 200;
 
 % Hyperparameters TEST
-% tol = 1e-3;
-% muAlpha = 1e-3; muBeta = 1e-4;
-% rho = 1;
-% maxIte = 150;
+tol = 1e-3;
+muAlpha = 1e-3; muBeta = 1e-4;
+rho = 1;
+maxIte = 150;
 
 % Initialization
 beta0 = 1+(7.5)/2;
@@ -309,7 +320,7 @@ Id = I(:,1+m*n:end);
 
 % Objective functions
 Fid = []; Reg = []; Dual = [];
-Fid(1) = 1/2*norm( modelFreq(u,zP,freqVec) - bzf(:) )^2;
+Fid(1) = 1/2*norm( modelFreqLinear(u,zP,freqVec) - bzf(:) )^2;
 Reg(1) = muAlpha*TVcalc_isotropic(DP*u(1:m*n),m,n,mask) + ...
     muBeta*TVcalc_isotropic(DP*u(m*n+1:end),m,n,mask);
 Dual(1) = 0;
@@ -329,7 +340,7 @@ while abs(error) > tol && ite < maxIte
     w = w + u - v;
 
     % Loss
-    Fid(ite+1) = 1/2*norm( modelFreq(u,zP,freqVec) - bzf(:) )^2;
+    Fid(ite+1) = 1/2*norm( modelFreqLinear(u,zP,freqVec) - bzf(:) )^2;
     Reg(ite+1) = muAlpha*TVcalc_isotropic(DP*v(1:m*n),m,n,mask) + ...
         muBeta*TVcalc_isotropic(DP*v(m*n+1:end),m,n,mask);
     Dual(ite+1) = norm(u-v);
@@ -337,7 +348,7 @@ while abs(error) > tol && ite < maxIte
         ite,Fid(ite+1),Reg(ite+1),Dual(ite+1))
     error = Fid(ite+1) + Reg(ite+1) - Fid(ite) - Reg(ite);
 
-    if mod(ite,10)==1
+    if true %mod(ite,2)==1
         alphaArr = reshape(DP*u(1:m*n),[m,n]);
         betaArr = reshape(DP*u(1+m*n:end),[m,n]);
         estACtv = alphaArr*NptodB/100;
