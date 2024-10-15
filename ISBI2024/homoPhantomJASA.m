@@ -39,8 +39,10 @@ filterParams.nCycles = 10; % Number of cycles of the initial filter
 wl = c0/filterParams.freqC/1e6; % Mean central frequency
 blockParams.blockSize = [30 30]*wl;
 blockParams.overlap = 0.8;
-blockParams.zlim = [2.5; 5.5]/100;
-blockParams.xlim = [-1.5; 1.5]/100;
+% blockParams.zlim = [2.5; 5.5]/100;
+% blockParams.xlim = [-1.5; 1.5]/100;
+blockParams.zlim = [2.4; 5]/100;
+blockParams.xlim = [-1.8; 2]/100;
 blockParams.downFactor = 20;
 
 %% Measurements, IUS version

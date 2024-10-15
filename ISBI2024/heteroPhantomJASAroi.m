@@ -3,7 +3,7 @@
 
 setup;
 baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\01-Oct-24\bf';
-resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\phantom';
+resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\phantomTest';
 [~,~,~] = mkdir(resultsDir);
 
 % Auxiliar variables
@@ -45,20 +45,25 @@ blockParams.xlim = [-1.5; 1.5]/100;
 blockParams.downFactor = 20;
 
 
-for iRoi = 1:6
+for iRoi = 1:5
+    fprintf('\n\nROI %d\n',iRoi);
     switch iRoi
         case 1
             blockParams.zlim = [2.5; 4.8]/100;
             blockParams.xlim = [-1.5; 1.5]/100;
         case 2
-            blockParams.zlim = [2.5; 5.5]/100;
+            blockParams.zlim = [2.5; 5]/100;
             blockParams.xlim = [-1.5; 1.5]/100;
         case 3
-            blockParams.zlim = [2.5; 4.8]/100;
-            blockParams.xlim = [-2; 2]/100;
+            blockParams.zlim = [2.5; 5.5]/100;
+            blockParams.xlim = [-1.5; 1.5]/100;
         case 4
             blockParams.zlim = [2; 4.8]/100;
             blockParams.xlim = [-1.5; 1.5]/100;
+        case 5
+            blockParams.zlim = [2.5; 4.8]/100;
+            blockParams.xlim = [-1.8; 2]/100;
+
     end
 
 %% Measurements, IUS version
@@ -290,8 +295,8 @@ while ite < maxIte % abs(error) > tol &&
     Reg(ite+1) = muAlpha*TVcalc_isotropic(DP*v(1:m*n),m,n,mask) + ...
         muBeta*TVcalc_isotropic(DP*v(m*n+1:end),m,n,mask);
     Dual(ite+1) = norm(u-v);
-    fprintf("Ite: %01i, Fid: %.3f, Reg: %.3f, Dual: %.3f\n",...
-        ite,Fid(ite+1),Reg(ite+1),Dual(ite+1))
+    % fprintf("Ite: %01i, Fid: %.3f, Reg: %.3f, Dual: %.3f\n",...
+    %     ite,Fid(ite+1),Reg(ite+1),Dual(ite+1))
     error = Fid(ite+1) + Reg(ite+1) - Fid(ite) - Reg(ite);
 
 end
