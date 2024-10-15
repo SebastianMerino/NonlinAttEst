@@ -3,7 +3,7 @@
 
 setup;
 baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\homoAttMismatch\fn2';
-resultsDir = fullfile(baseDir,'results');
+resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\homoBA9';
 [~,~,~] = mkdir(resultsDir);
 
 % Auxiliar variables
@@ -12,8 +12,8 @@ radiusDisk = (9)*1e-3;
 centerDepth = 22.5e-3;
 
 baRange = [5 13];
-attRange = [0.09,0.17];
-
+attRange = [0.05,0.15];
+imPosition = [100 200 250 300];
 
 alphaRefVec = 0.08:0.02:0.22;
 iSim = 1;
@@ -31,10 +31,11 @@ filterParams.nCycles = 10; % Number of cycles of the initial filter
 
 % Subsampling parameters
 wl = 1540/5e6; % Mean central frequency
-blockParams.blockSize = [30 30]*wl;
+blockParams.blockSize = [25 25]*wl;
 blockParams.overlap = 0.8;
 blockParams.zlim = [1; 5.5]/100;
 blockParams.xlim = [-2.5; 2.5]/100;
+blockParams.downFactor = 20;
 
 freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
 
@@ -45,7 +46,97 @@ for iSim=1:length(alphaRefVec)
     alphaInit = alphaRef;
     medium.alphaR = alphaRef/NptodB*100; % alpha0 in dB/100/MHz2
 
-    %% Getting B/A
+    %% Measurements, IUS version
+    freq = 5;
+    fileSam = "RFfn2_PWNE"+freq+"MHz_samBA9_att0p10f2_nc10_400kPa";
+    fileRef = "RFfn2_PWNE"+freq+"MHz_refBA6_att0p"+...
+        num2str(round(100*alphaRef), '%02d')+"f2p0_400kPa";
+    
+    % Sample
+    sample = load(fullfile(baseDir,fileSam));
+    medium.z = sample.z';
+    medium.x = sample.x;
+    medium.fs = sample.fs;
+    medium.rfL = sample.rf1(:,:,:);
+    medium.rfH = sample.rf2(:,:,:);
+    clear sample
+    
+    % Reference
+    ref = load(fullfile(baseDir,fileRef));
+    medium.rfLR = ref.rf1(:,:,:);
+    medium.rfHR = ref.rf2(:,:,:);
+    clear ref
+    
+    % Measurements
+    [bz,zbz,xB,zB] = getMeasurementsIUS(medium,filterParams,blockParams);
+    X = permute(zbz,[3 1 2]);
+    Y = permute(bz,[3 1 2]);
+    X = X(:); Y = Y(:);
+
+    %% Gauss-Newton with LM
+    [m,n,p] = size(bz);
+    
+    tol = 1e-3;
+    maxIte = 200;
+    % muAlpha = 1000; muBeta = 0;
+    muAlpha = 1; muBeta = 1;
+    beta0 = 1+baInit/2;
+    alpha0 = alphaInit*freq^2 *100/NptodB; % Np/m
+    
+    theta = [alpha0*ones(n*m,1);beta0*ones(n*m,1)];
+    regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
+    
+    loss = [];
+    loss(1) = 0.5*norm(Y - model(theta,X))^2;
+    
+    ite = 1;
+    tic 
+    while true
+        jcb = jacobian(theta,X);
+        res = (Y - model(theta,X));
+        [step,~] = pcg(jcb'*jcb + regMatrix,jcb'*-res, tol, 200);
+        % step = (jcb'*jcb + regMatrix)\(jcb'*-res);
+        theta = theta + step;
+    
+        loss(ite+1) = 0.5*norm(Y - model(theta,X))^2;
+        if abs(loss(ite+1) - loss(ite))<tol || ite == maxIte, break; end
+        ite = ite + 1;
+    end
+    toc
+    alphaArr = theta(1:n*m);
+    betaArr = theta(n*m+1:end);
+    
+    estAClm = reshape(alphaArr/freq^2 /100*NptodB,[m,n]);
+    estBAlm = reshape(2*(betaArr-1),[m,n]);
+
+    baMean = mean(estBAlm(:),'omitnan');
+    baStd = std(estBAlm(:),[],'omitnan');
+    acMean = mean(estAClm(:),'omitnan');
+    acStd = std(estAClm(:),[],'omitnan');
+
+    figure('Position',imPosition); 
+    imagesc(xB*1e2,zB*1e2,estBAlm); colorbar;
+    clim(baRange);
+    title("B/A = "+num2str(baMean,2)+"\pm"+num2str(baStd,2));
+    axis image
+    colormap pink; colorbar;
+    xlabel('Lateral [cm]');
+    ylabel('Depth [cm]');
+
+    figure('Position',imPosition); 
+    imagesc(xB*1e2,zB*1e2,estAClm); colorbar;
+    clim(attRange);
+    title("\alpha_0 = "+num2str(acMean,2)+"\pm"+num2str(acStd,2));
+    axis image
+    colormap turbo; colorbar;
+    xlabel('Lateral [cm]');
+    ylabel('Depth [cm]');
+    pause(0.1)
+
+    metricsIUS(iSim) = getMetrics(estAClm,estBAlm,'IUS',alphaRef);
+
+
+    %% Measurements, new version
     bzf = [];
     for iFreq = 1:length(freqVec)
         freq = freqVec(iFreq);
@@ -79,98 +170,14 @@ for iSim=1:length(alphaRefVec)
     betaL = ones(size(Xmesh))*(1+baInit/2);
     u0 = [alphaL(:)*100/NptodB;betaL(:)];
 
-
-    %% Gauss-Newton with LM
-    [m,n,p] = size(bzf);
-    tol = 1e-3;
-    maxIte = 200;
-    muAlpha = 0;
-    muBeta = 0;
-    regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
-
-    u = u0;
-    loss = [];
-    loss(1) = 0.5*norm(modelFreq(u,zP,freqVec) - bzf(:))^2;
-    ite = 1;
-    tic
-    while true
-        jcb = jacobianFreq(u,zP,freqVec);
-        res = modelFreq(u,zP,freqVec) - bzf(:);
-        [step,~] = pcg(jcb'*jcb + regMatrix,jcb'*-res, tol, 200);
-        % step = (jcb'*jcb + regMatrix)\(jcb'*-res);
-        u = u + step;
-
-        loss(ite+1) = 0.5*norm(modelFreq(u,zP,freqVec) - bzf(:))^2;
-        if abs(loss(ite+1) - loss(ite))<tol || ite == maxIte, break; end
-        ite = ite + 1;
-
-        alphaArr = u(1:n*m);
-        betaArr = u(n*m+1:end);
-
-        estAClm = reshape(alphaArr*NptodB/100,[m,n]);
-        estBAlm = reshape(2*(betaArr-1),[m,n]);
-
-    end
-    toc
-
-    alphaArr = u(1:n*m);
-    betaArr = u(n*m+1:end);
-
-    estAClm = reshape(alphaArr*NptodB/100,[m,n]);
-    estBAlm = reshape(2*(betaArr-1),[m,n]);
-
-
-    %% Local maps with regularization
-    muLocal = 0.1;
-    dzP = zP(2)-zP(1);
-    izP = round(zP./dzP);
-    factorq = izP(1)./izP ;
-    P = sparse(tril(ones(m-1)));
-    P = P./izP(2:end);
-    P = kron(speye(n),P);
-
-    estBAcum = estBAlm - estBAlm(1,:).*factorq;
-    estBAcum = estBAcum(2:end,:);
-    estBAinst = IRLS_TV(estBAcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
-    estBAinst = reshape(estBAinst,m-1,n);
-
-    estACcum = estAClm - estAClm(1,:).*factorq;
-    estACcum = estACcum(2:end,:);
-    estACinst = IRLS_TV(estACcum(:),P,muLocal,m-1,n,tol,[],ones((m-1)*n,1));
-    estACinst = reshape(estACinst,m-1,n);
-
-    baMean = mean(estBAinst(:),'omitnan');
-    baStd = std(estBAinst(:),[],'omitnan');
-    acMean = mean(estACinst(:),'omitnan');
-    acStd = std(estACinst(:),[],'omitnan');
-
-    figure; imagesc(xP*1e3,zP(2:end)*1e3,estBAinst); colorbar;
-    clim(baRange);
-    title("B/A = "+num2str(baMean,2)+"+/-"+num2str(baStd,2));
-    axis image
-    colormap pink; colorbar;
-    xlabel('Lateral distance (mm)');
-    ylabel('Depth (mm)');
-
-    figure;
-    im = imagesc(xP*1e3,zP*1e3,estACinst); colorbar;
-    clim(attRange);
-    title("\alpha_0 = "+num2str(acMean,2)+"+/-"+num2str(acStd,2));
-    axis image
-    colormap turbo; colorbar;
-    xlabel('Lateral distance (mm)');
-    ylabel('Depth (mm)');
-    pause(0.1)
-
-    metricsGN(iSim) = getMetrics(estACinst,estBAinst,'GN',alphaRef);
-
+    
     %% ADMM
     % Optimizes F(u) + R(v)
     % Hyperparameters
     [m,n,p] = size(bzf);
     tol = 1e-3;
     muAlpha = 1; muBeta = 0.1;
-    rho = 0.1;
+    rho = 1;
     maxIte = 200;
 
     % Initialization
@@ -228,35 +235,41 @@ for iSim=1:length(alphaRefVec)
     estACtv = alphaArr*NptodB/100;
     estBAtv = 2*(betaArr-1);
 
-    figure; imagesc(xP*1e3,zP*1e3,estBAtv); colorbar;
+    baMean = mean(estBAtv(:),'omitnan');
+    baStd = std(estBAtv(:),[],'omitnan');
+    acMean = mean(estACtv(:),'omitnan');
+    acStd = std(estACtv(:),[],'omitnan');
+
+    figure('Position',imPosition); 
+    imagesc(xP*1e3,zP*1e3,estBAtv); colorbar;
     clim(baRange);
-    title("B/A = "+num2str(baMean,2)+"+/-"+num2str(baStd,2));
+    title("B/A = "+num2str(baMean,2)+"\pm"+num2str(baStd,2));
     axis image
     colormap pink; colorbar;
-    xlabel('Lateral distance (mm)');
-    ylabel('Depth (mm)');
+    xlabel('Lateral [cm]');
+    ylabel('Depth [cm]');
 
-    figure;
+    figure('Position',imPosition); 
     im = imagesc(xP*1e3,zP*1e3,estACtv); colorbar;
     clim(attRange);
-    title("\alpha_0 = "+num2str(acMean,2)+"+/-"+num2str(acStd,2));
+    title("\alpha_0 = "+num2str(acMean,2)+"\pm"+num2str(acStd,2));
     axis image
     colormap turbo; colorbar;
-    xlabel('Lateral distance (mm)');
-    ylabel('Depth (mm)');
+    xlabel('Lateral [cm]');
+    ylabel('Depth [cm]');
     pause(0.1)
 
     metricsADMM(iSim) = getMetrics(estACtv,estBAtv,'ADMM',alphaRef);
 
     %%
     save_all_figures_to_directory(resultsDir,...
-        char("sim"+iSim+"fig"))
+        char("sim"+iSim+"fig"),'svg')
     close all
 
 end
 %%
-T = [struct2table(metricsGN);struct2table(metricsADMM)];
-writetable(T,fullfile(resultsDir,'table.xlsx'))
+T = [struct2table(metricsIUS);struct2table(metricsADMM)];
+writetable(T,fullfile(resultsDir,'homoRef.xlsx'))
 
 % ---------------------------------------------------------------------- %
 % ---------------------------------------------------------------------- %

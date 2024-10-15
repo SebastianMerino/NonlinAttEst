@@ -2,7 +2,7 @@ function mdl = model(theta,x)
 mn = size(theta,1)/2; % number of points in image
 p = length(x)/mn;
 
-alphaArr = theta(1:mn)'/db(exp(1))*100; % dB/cm -> Np/m
+alphaArr = theta(1:mn)'; % /db(exp(1))*100; % dB/cm -> Np/m
 betaArr = theta(mn+1:end)';
 zBA = reshape(x,[p,mn]);
 

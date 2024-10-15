@@ -27,7 +27,7 @@ m  = length(z0);
 Pblock = zeros(m,n,size(P,3));
 for ii = 1:m
     for jj = 1:n
-        blockP = P(z0(ii):z0(ii)+nz,x0(jj):x0(jj)+nx,:);
+        blockP = P(z0(ii):z0(ii)+nz-1,x0(jj):x0(jj)+nx-1,:);
         Pblock(ii,jj,:) = mean(blockP,[1 2]);
     end
 end
