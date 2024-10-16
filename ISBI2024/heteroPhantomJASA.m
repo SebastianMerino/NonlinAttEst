@@ -2,8 +2,10 @@
 % Used for showing results
 
 setup;
-baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\01-Oct-24\bf';
-resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\phantom';
+% baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\01-Oct-24\bf';
+% resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\phantom';
+baseDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\phantom';
+resultsDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\JASA2024';
 [~,~,~] = mkdir(resultsDir);
 
 % Auxiliar variables
@@ -135,9 +137,9 @@ fprintf('AC inc: %.2f +/- %.2f\n', mean(AttInterp(inc),'omitnan'), ...
 fprintf('AC back: %.2f +/- %.2f\n', mean(AttInterp(back),'omitnan'), ...
     std(AttInterp(back), [] ,'omitnan'));
 fprintf('B/A inc: %.2f +/- %.2f\n', mean(BaInterp(inc),'omitnan'), ...
-    std(BaInterp(:), [] ,'omitnan'));
+    std(BaInterp(inc), [] ,'omitnan'));
 fprintf('B/A back: %.2f +/- %.2f\n', mean(BaInterp(back),'omitnan'), ...
-    std(BaInterp(:), [] ,'omitnan'));
+    std(BaInterp(back), [] ,'omitnan'));
 
 %%
 [X,Z] = meshgrid(xBm,zBm);
@@ -304,9 +306,9 @@ fprintf('AC inc: %.2f +/- %.2f\n', mean(AttInterp(inc),'omitnan'), ...
 fprintf('AC back: %.2f +/- %.2f\n', mean(AttInterp(back),'omitnan'), ...
     std(AttInterp(back), [] ,'omitnan'));
 fprintf('B/A inc: %.2f +/- %.2f\n', mean(BaInterp(inc),'omitnan'), ...
-    std(BaInterp(:), [] ,'omitnan'));
+    std(BaInterp(inc), [] ,'omitnan'));
 fprintf('B/A back: %.2f +/- %.2f\n', mean(BaInterp(back),'omitnan'), ...
-    std(BaInterp(:), [] ,'omitnan'));
+    std(BaInterp(back), [] ,'omitnan'));
 %%
 [X,Z] = meshgrid(xBm,zBm);
 incPlot = (X-cx).^2./rx^2 + (Z-cz).^2./rz^2 < 1^2;

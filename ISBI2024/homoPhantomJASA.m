@@ -2,8 +2,10 @@
 % Used for showing results
 
 setup;
-baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\01-Oct-24\bf';
-resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\phantom';
+% baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\01-Oct-24\bf';
+% resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\phantom';
+baseDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\phantom';
+resultsDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\JASA2024';
 [~,~,~] = mkdir(resultsDir);
 
 % Auxiliar variables
@@ -41,7 +43,7 @@ blockParams.blockSize = [30 30]*wl;
 blockParams.overlap = 0.8;
 % blockParams.zlim = [2.5; 5.5]/100;
 % blockParams.xlim = [-1.5; 1.5]/100;
-blockParams.zlim = [2.4; 5]/100;
+blockParams.zlim = [2.5; 5.1]/100;
 blockParams.xlim = [-1.8; 2]/100;
 blockParams.downFactor = 20;
 
