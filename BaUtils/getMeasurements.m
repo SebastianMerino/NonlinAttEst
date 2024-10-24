@@ -1,4 +1,4 @@
-function [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams)
+function [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams,varargin)
 %   Gets a 2D map of measurements (mz in the IUS 2024 paper)
 %   given the rf data and some hyperparameters. Downsamples in the axial
 %   and lateral directions
@@ -36,9 +36,16 @@ PLR = meanP(:,:,3);
 PHR = meanP(:,:,4);
 
 % Getting measurements
+if nargin==3
 attRef = medium.alphaR*(freqC/1e6)^2;
 bz = medium.betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
     ( 1-exp(-2*attRef*zP) )/attRef./zP;
+else
+attRef = medium.alphaR*(freqC/1e6).^varargin{1};
+bz = medium.betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
+    ( 1-exp(-2*attRef*zP) )/attRef./zP;
+
+end
 % bz = medium.betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*...
 %     abs(v^3*PLR - PHR)./abs(v^3*PL - PH) ).*...
 %     ( 1-exp(-2*attRef*zP) )/attRef./zP;
