@@ -17,9 +17,9 @@ x = (0:n-1)*dx; x = x - mean(x);
 z = (0:m-1)'*dz;
 
 baRange = [5 13];
-attRange = [0.05,0.2];
+attRange = [0.2,0.8];
 
-freqVec = [4,4.5,5,5.5,6];
+freqVec = [4,4.5,5,5.5,6,6.5];
 
 %% Ideal maps
 % Generating local maps
@@ -28,8 +28,8 @@ NptodB = db(exp(1));
 inc = Xmesh.^2 + (Zmesh-centerDepth).^2 <= (radiusDisk).^2;
 betaL = ones(size(Xmesh))*(1+6/2);
 betaL(inc) = (1+12/2);
-alphaL = ones(size(Xmesh))*0.1;
-alphaL(inc) = 0.15;
+alphaL = ones(size(Xmesh))*0.4;
+alphaL(inc) = 0.6;
 
 figure('Units','centimeters', 'Position',[5 5 20 10])
 font = 9;
@@ -91,7 +91,7 @@ pause(0.1)
 bzf = [];
 for iFreq = 1:length(freqVec)
     freq = freqVec(iFreq);
-    alphaCnp = alphaC/NptodB*100 * freq^2; % dB/cm -> Np/m
+    alphaCnp = alphaC/NptodB*100 * freq^1; % dB/cm -> Np/m
     mzaxis = betaC.*(1 - exp(-2*alphaCnp.*Zmesh) )./alphaCnp./Zmesh + ...
         0.0*randn(size(Xmesh));
     
@@ -102,7 +102,7 @@ for iFreq = 1:length(freqVec)
     blockParams.zlim = [0.5; 5]/100;
     blockParams.xlim = [-2.5; 2.5]/100;
     
-    mzaxis = mzaxis + 0.1*randn(size(mzaxis));
+    mzaxis = mzaxis + 0*randn(size(mzaxis));
     [bz,xP,zP] = getMeanBlock(mzaxis,x,z,blockParams);
         bzf(:,:,iFreq) = bz;
 end
@@ -140,15 +140,16 @@ colorbar
 colormap parula
 %% Gauss-Newton with LM
 [m,n,p] = size(bzf);
-tol = 1e-3;
+tol = 1e-5;
 maxIte = 400;
 betaIni = 1+(10.5)/2;
 alpha0Ini = 0/NptodB*100;
-alpha1Ini = 0.08/NptodB*100;
+alpha1Ini = 0.5/NptodB*100;
 u = [alpha0Ini*ones(n*m,1);alpha1Ini*ones(n*m,1);betaIni*ones(n*m,1)];
-% muAlpha = 0; muBeta = 0;
-% regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
-regMatrix = 0;
+
+muAlpha0 = 0; muAcs= 0; muBeta = 0;
+regMatrix = blkdiag(muAlpha0*speye(n*m),muAcs*speye(m*n),...
+    muBeta*speye(n*m));
 
 loss = [];
 loss(1) = 0.5*norm(modelFreqLinear(u,zP,freqVec) - bzf(:))^2;
@@ -168,8 +169,6 @@ while true
 end
 toc
 %%
-attRange = [1,2.2];
-baRange = [6,15];
 alpha0Map = reshape(u(1:m*n),m,n);
 alpha1Map = reshape(u(m*n+1:2*m*n),m,n);
 betaMap = reshape(u(2*m*n+1:end),m,n);
@@ -197,7 +196,7 @@ xlabel('Lateral distance (mm)');
 ylabel('Depth (mm)');
 
 figure; imagesc(xP*1e3,zP*1e3,estACSlm); colorbar;
-clim(attRange);
+% clim(attRange);
 title('ACS')
 axis image
 colormap turbo; colorbar;

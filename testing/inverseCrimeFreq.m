@@ -19,7 +19,7 @@ z = (0:m-1)'*dz;
 baRange = [5 13];
 attRange = [0.05,0.2];
 
-freqVec = [4,5,6];
+freqVec = [4,4.5,5,5.5,6,6.5];
 
 %% Ideal maps
 % Generating local maps

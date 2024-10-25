@@ -19,7 +19,7 @@ z = (0:m-1)'*dz;
 baRange = [5 13];
 attRange = [0.05,0.2];
 
-freqVec = [4,5,6];
+freqVec = [4,4.5,5,5.5,6,6.5];
 
 %% Ideal maps
 % Generating local maps
@@ -88,10 +88,11 @@ colormap(t1,turbo)
 pause(0.1)
 
 %%
+noise_level = 0.2;
 bzf = [];
 for iFreq = 1:length(freqVec)
     freq = freqVec(iFreq);
-    alphaCnp = alphaC/NptodB*100 * freq^2; % dB/cm -> Np/m
+    alphaCnp = alphaC/NptodB*100 * freq^1.5; % dB/cm -> Np/m
     mzaxis = betaC.*(1 - exp(-2*alphaCnp.*Zmesh) )./alphaCnp./Zmesh + ...
         0.0*randn(size(Xmesh));
     
@@ -102,7 +103,7 @@ for iFreq = 1:length(freqVec)
     blockParams.zlim = [0.5; 5]/100;
     blockParams.xlim = [-2.5; 2.5]/100;
     
-    mzaxis = mzaxis + 0.1*randn(size(mzaxis));
+    mzaxis = mzaxis + noise_level*randn(size(mzaxis));
     [bz,xP,zP] = getMeanBlock(mzaxis,x,z,blockParams);
         bzf(:,:,iFreq) = bz;
 end
