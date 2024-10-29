@@ -3,7 +3,7 @@
 setup;
 baseDir = 'P:\smerino\NonlinAttESt\data\ref_att1p2';
 refDir = 'P:\smerino\NonlinAttESt\data\uniformSimulation';
-resultsDir = fullfile(baseDir,'results_BA10_att0p60f1p2_gamma1p6');
+resultsDir = fullfile(baseDir,'results_BA10_att0p60f1p2_gamma1p2');
 [~,~,~] = mkdir(resultsDir);
 
 % Cambiar para seleccionar muestra
@@ -22,7 +22,7 @@ alphaRefVec = 0.08:0.02:0.22;
 
 %% Preparing data
 baInit = 6;
-gamma = 1.6;
+gamma = 1.2;
 gammaRef = 2;
 
 % Known variables
