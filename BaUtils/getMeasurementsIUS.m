@@ -17,22 +17,22 @@ freqC = filterParams.freqC*1e6;
 freqTol = filterParams.freqTol*1e6;
 order = round(filterParams.nCycles/freqC*fs);
 PLfull = getFilteredPressure(rfL,fs,freqC,freqTol,order);
-PHfull = getFilteredPressure(rfH,fs,freqC,freqTol,order);
+DEPfull = getFilteredPressure(v*rfL-rfH,fs,freqC,freqTol,order);
 PLRfull = getFilteredPressure(rfLR,fs,freqC,freqTol,order);
-PHRfull = getFilteredPressure(rfHR,fs,freqC,freqTol,order);
+DEPRfull = getFilteredPressure(v*rfLR-rfHR,fs,freqC,freqTol,order);
 
 % In case there is an additional dimension
 PLfull = mean(PLfull,3);
-PHfull = mean(PHfull,3);
+DEPfull = mean(DEPfull,3);
 PLRfull = mean(PLRfull,3);
-PHRfull = mean(PHRfull,3);
+DEPRfull = mean(DEPRfull,3);
 
 % Downsampling lateral (moving average)
-[meanP,xB] = averageLines(cat(3,PLfull,PHfull,PLRfull,PHRfull),x,blockParams);
+[meanP,xB] = averageLines(cat(3,PLfull,DEPfull,PLRfull,DEPRfull),x,blockParams);
 PL = meanP(:,:,1);
-PH = meanP(:,:,2);
+DEPH = meanP(:,:,2);
 PLR = meanP(:,:,3);
-PHR = meanP(:,:,4);
+DEPHR = meanP(:,:,4);
 
 % Getting measurements
 if isfield(medium,'alphaR')
@@ -40,7 +40,7 @@ if isfield(medium,'alphaR')
 else
     attRef = medium.alphaRcoeff*(freqC/1e6)^medium.alphaRpower;
 end
-bz = medium.betaR*sqrt( abs(v*PL-PH)./abs(v*PLR-PHR) .*PLR./PL ).*...
+bz = medium.betaR*sqrt( abs(DEPH)./abs(DEPHR) .*PLR./PL ).*...
     ( 1-exp(-2*attRef*z) )/attRef./z;
 
 % Ordering in blocks
