@@ -2,10 +2,10 @@
 % Used for showing results
 
 setup;
-% baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\phantom';
-% resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsISBI\phantom';
-baseDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\phantom';
-resultsDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\JASA2024';
+baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\phantom';
+resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsISBI\phantom';
+% baseDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\phantom';
+% resultsDir = 'C:\Users\smerino.C084288\Documents\Datasets\Nonlinearity\JASA2024';
 [~,~,~] = mkdir(resultsDir);
 
 % Auxiliar variables
