@@ -20,16 +20,19 @@ gammaRatio = (5.5./0.1)./(4./alphaRef);
 xlimGamma = [gammaRatio(1)-0.3,gammaRatio(end)+0.3];
 
 figure('Position',imPosition),
-errorbar(gammaRatio,baAdmm,baStdAdmm, 'LineWidth',lineWidth)
+% errorbar(gammaRatio,baAdmm,baStdAdmm, 'LineWidth',lineWidth)
+% hold on
+% errorbar(gammaRatio,baIus,baStdIus, 'LineWidth',lineWidth)
+errorbar(alphaRef,baAdmm,baStdAdmm, 'LineWidth',lineWidth)
 hold on
-errorbar(gammaRatio,baIus,baStdIus, 'LineWidth',lineWidth)
+errorbar(alphaRef,baIus,baStdIus, 'LineWidth',lineWidth)
 hold off, grid on
 yline(9,'k--')
 title('Uniform media')
 ylabel('B/A')
-xlabel('\Gamma_{s}/\Gamma_{r}')
+xlabel('\alpha_0 [dB/cm/MHz^2]')
 legend(legendCell, 'Location',legendLoc)
-xlim(xlimGamma)
+% xlim(xlimGamma)
 fontsize(fontSize,"points")
 ylim([6 21])
 
@@ -39,16 +42,19 @@ acIus = T(method=='IUS',:).acMean;
 acStdIus = T(method=='IUS',:).acStd;
 
 figure('Position',imPosition),
-errorbar(gammaRatio,acAdmm,acStdAdmm, 'LineWidth',lineWidth)
+% errorbar(gammaRatio,acAdmm,acStdAdmm, 'LineWidth',lineWidth)
+% hold on
+% errorbar(gammaRatio,acIus,acStdIus, 'LineWidth',lineWidth)
+errorbar(alphaRef,acAdmm,acStdAdmm, 'LineWidth',lineWidth)
 hold on
-errorbar(gammaRatio,acIus,acStdIus, 'LineWidth',lineWidth)
+errorbar(alphaRef,acIus,acStdIus, 'LineWidth',lineWidth)
 hold off, grid on
 yline(0.1,'k--')
 title('Uniform media')
 ylabel('\alpha [dB/cm/MHz^2]')
-xlabel('\Gamma_{s}/\Gamma_{r}')
+xlabel('\alpha_0 [dB/cm/MHz^2]')
 legend(legendCell, 'Location',legendLoc)
-xlim(xlimGamma)
+% xlim(xlimGamma)
 fontsize(fontSize,"points")
 
 %% Homogeneous data

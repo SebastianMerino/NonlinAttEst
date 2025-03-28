@@ -5,7 +5,7 @@ setup;
 baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\attInc\fn2';
 resultsDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsISBI\ba6Inc12';
 [~,~,~] = mkdir(resultsDir);
-refDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\uniformBA_inclusionACS\fn2';
+refDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\newRef';
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));
@@ -55,7 +55,7 @@ for iSim=1:length(alphaIncVec)
     alphaStr = num2str(alphaInc,"%02d");
     fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
-    fileRef = "RFfn2_PWNE"+freq+"MHz_samBA6_att0p1f2inc0p10_nc10_400kPa";
+    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
     
     % Sample
     sample = load(fullfile(baseDir,fileSam));
@@ -204,7 +204,7 @@ for iSim=1:length(alphaIncVec)
         alphaStr = num2str(alphaInc,"%02d");
         fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
-        fileRef = "RFfn2_PWNE"+freq+"MHz_samBA6_att0p1f2inc0p10_nc10_400kPa";
+        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
 
         % Sample
         sample = load(fullfile(baseDir,fileSam));
