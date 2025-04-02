@@ -3,7 +3,7 @@ lineWidth = 2;
 fontSize = 12;
 legendCell = {'GNTV','GNLM'};
 legendLoc = 'northwest'; 
-baseDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA';
+baseDir = 'Q:\smerino\Nonlinearity\resultsJASA';
 baLim = [1 15];
 
 %% Homogeneous data
@@ -182,7 +182,7 @@ xlim(xlimGamma)
 fontsize(fontSize,"points")
 
 %% BA6inc12, reference from uniformBA_inclusionACS
-tFile = fullfile(baseDir,'ba6Inc12_v2','table.xlsx');
+tFile = fullfile(baseDir,'ba6inc12Ref1p2','table.xlsx');
 T = readtable(tFile);
 method = categorical(T.method);
 baIncAdmm = T(method=='ADMM',:).BaIncMean;
@@ -266,6 +266,7 @@ xlim(xlimGamma)
 fontsize(fontSize,"points")
 
 %%
-outDir = 'C:\Users\sebas\Documents\Data\Nonlinearity\resultsJASA\plots';
+outDir = 'Q:\smerino\Nonlinearity\resultsJASA\plotsRef1p2';
+mkdir(outDir)
 save_all_figures_to_directory(outDir,'fig','svg')
 close all

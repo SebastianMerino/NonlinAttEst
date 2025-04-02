@@ -1,9 +1,9 @@
-% New methods with frequency compounding. Requires three transmissions
-% Used for showing results
+% Iterating simulated heterogeneous data using reference with 
+%   Attenuation = alpha * f^gamma
 
 setup;
 baseDir = "Q:\smerino\Nonlinearity\attInc\fn2";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12New";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12Ref1p2";
 [~,~,~] = mkdir(resultsDir);
 refDir = "Q:\smerino\Nonlinearity\newRef";
 
@@ -25,7 +25,9 @@ baInit = 6;
 % Known variables
 medium.v = 5;
 medium.betaR = 1 + 6/2;
-medium.alphaR = 0.1/NptodB*100; % alpha0 in dB/100/MHz2
+medium.alphaRcoeff = 0.1/NptodB*100; % alpha0 in dB/100/MHz2
+medium.alphaRpower = 1.2;
+
 
 % Filtering parameters
 filterParams.freqC = 5;
@@ -41,7 +43,7 @@ blockParams.xlim = [-2.5; 2.5]/100;
 blockParams.downFactor = 20;
 freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
 
-iSim = 1;
+iSim = 2;
 alphaInc = alphaIncVec(iSim);
 
 %% For loop
@@ -55,7 +57,7 @@ for iSim=1:length(alphaIncVec)
     alphaStr = num2str(alphaInc,"%02d");
     fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
-    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
+    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f12_BA6_nc10_400kPa";
     
     % Sample
     sample = load(fullfile(baseDir,fileSam));
@@ -204,7 +206,7 @@ for iSim=1:length(alphaIncVec)
         alphaStr = num2str(alphaInc,"%02d");
         fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
-        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
+        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f12_BA6_nc10_400kPa";
 
         % Sample
         sample = load(fullfile(baseDir,fileSam));
@@ -222,7 +224,7 @@ for iSim=1:length(alphaIncVec)
         clear ref
 
         filterParams.freqC = freqVec(iFreq);
-        [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);
+        [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams,medium.alphaRpower);
         bzf(:,:,iFreq) = bz;
 
         % idz = medium.z>0.5e-2&medium.z<5.5e-2; % true(size(medium.z)); %
