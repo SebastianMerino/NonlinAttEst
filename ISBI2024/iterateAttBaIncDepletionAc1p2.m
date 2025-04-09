@@ -2,8 +2,8 @@
 % Used for showing results
 
 setup;
-baseDir = "Q:\smerino\Nonlinearity\attInc\fn2";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12Ref2p0Depletion";
+baseDir = "Q:\smerino\Nonlinearity\attIncNonQuadratic";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12ac1p2Depletion";
 [~,~,~] = mkdir(resultsDir);
 refDir = "Q:\smerino\Nonlinearity\newRef";
 
@@ -16,7 +16,7 @@ imPosition = [100 200 250 300];
 baRange = [4 13];
 attRange = [0.08,0.22];
 
-alphaIncVec = 8:2:22;
+alphaIncVec = 8:2:14;
 
 alphaInit = 0.1;
 baInit = 6;
@@ -66,8 +66,8 @@ for iSim = 1:length(alphaIncVec)
     iFreq = 2;
     freq = freqVec(iFreq);
     alphaStr = num2str(alphaInc,"%02d");
-    fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
-        "_nc10_400kPa";
+    fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
+        "f12_BA6inc12_nc10_400kPa";
     fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
 
     %% Sample
@@ -92,7 +92,7 @@ for iSim = 1:length(alphaIncVec)
     % Alpha coefficients in Np/m
     alphaCoeffBack = 0.1/NptodB*100; 
     alphaCoeffInc = alphaInc/NptodB;
-    alphaPower = 2;
+    alphaPower = 1.2;
 
     attSamBack = alphaCoeffBack*(filterParams.freqC)^alphaPower;
     attSamInc = alphaCoeffInc*(filterParams.freqC)^alphaPower;

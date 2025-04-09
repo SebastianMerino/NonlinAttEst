@@ -1,6 +1,6 @@
 clear, clc
-dataDir = 'Q:\smerino\Nonlinearity\newRef';
-filesLP = dir(fullfile(dataDir,"*1f12*_80kPa.mat"));
+dataDir = 'Q:\smerino\Nonlinearity\attIncNonQuadratic';
+filesLP = dir(fullfile(dataDir,"*_80kPa.mat"));
 fnumber = 2;
 element_pitch = 0.3e-3;
 %iFile = 1;
@@ -29,26 +29,32 @@ for iFile = 1:length(filesLP)
 
     save(fullfile(dataDir,file_out),'c0','fs','rf1','rf2','x','z');
 
+    bMode = db(hilbert(rf1(:,:,1)));
+    bMode = bMode - max(bMode(:));
+    figure,
+    imagesc(x,z,bMode, [-90 -30])
+    colormap gray
+    axis image
 end
 
 clear rf1 rf2
 
 
-% %%
-% offset = 500;
-% bmode1 = db(hilbert(rf_prebf(offset:end,:,1)));
-% bmode1 = bmode1 - max(bmode1(:));
-% bmode2 = db(hilbert(rf2(offset:end,:,1)));
-% bmode2 = bmode2 - max(bmode2(:));
-% 
-% figure,
-% imagesc(x,z(offset:end),bmode1, [-50 0])
-% axis image
-% colorbar
-% colormap gray
-% 
-% figure,
-% imagesc(x,z(offset:end),bmode2, [-50 0])
-% axis image
-% colorbar
-% colormap gray
+%%
+offset = 500;
+bmode1 = db(hilbert(rf1(offset:end,:,1)));
+bmode1 = bmode1 - max(bmode1(:));
+bmode2 = db(hilbert(rf2(offset:end,:,1)));
+bmode2 = bmode2 - max(bmode2(:));
+
+figure,
+imagesc(x,z(offset:end),bmode1, [-50 0])
+axis image
+colorbar
+colormap gray
+
+figure,
+imagesc(x,z(offset:end),bmode2, [-50 0])
+axis image
+colorbar
+colormap gray
