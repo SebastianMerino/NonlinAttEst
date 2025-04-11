@@ -54,8 +54,8 @@ freqL = 4.5e6; freqH = 6.5e6;
 
 % Regularization parameters
 tol = 1e-3;
-muRsld = 10^2;
-muBswift = 10^2; muCswift = 10^0.5;
+muRsld = 10^3;
+muBswift = 10^3; muCswift = 10^0.5;
 ratioCutOff = 10;
 reject = 0.1;
 extension = 3;
@@ -315,3 +315,5 @@ contour(xBm*100,zBm*100,incPlot,1,'w--', 'LineWidth',2)
 hold off
 
 %%
+save_all_figures_to_directory(resultsDir,'heteroFig','svg')
+close all

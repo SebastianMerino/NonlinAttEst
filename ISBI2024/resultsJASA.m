@@ -34,7 +34,7 @@ xlabel('\alpha_0 [dB/cm/MHz^2]')
 legend(legendCell, 'Location',legendLoc)
 % xlim(xlimGamma)
 fontsize(fontSize,"points")
-ylim([6 21])
+ylim([5 17])
 
 acAdmm = T(method=='ADMM',:).acMean;
 acStdAdmm = T(method=='ADMM',:).acStd;

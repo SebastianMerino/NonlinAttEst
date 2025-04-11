@@ -3,7 +3,7 @@
 
 setup;
 baseDir = "Q:\smerino\Nonlinearity\attIncNonQuadratic";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12ac1p2Depletion";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12ac1p2Depletionref2p0";
 [~,~,~] = mkdir(resultsDir);
 refDir = "Q:\smerino\Nonlinearity\newRef";
 
@@ -26,7 +26,7 @@ baInit = 6;
 medium.v = 5;
 medium.betaR = 1 + 6/2;
 medium.alphaRcoeff = 0.1/NptodB*100; % alpha0 in dB/m
-medium.alphaRpower = 2;
+medium.alphaRpower = 2.0;
 
 % Filtering parameters
 filterParams.freqC = 5;
@@ -317,7 +317,7 @@ for iSim = 1:length(alphaIncVec)
 
     % Metrics
     metricsDepRsld2(iSim) = getMetrics(acInterp,baInterp,inc,back,'DepRsld2', ...
-        alphaInc/100,0,1)
+        alphaInc/100,0,1);
 
     %% Plots
 

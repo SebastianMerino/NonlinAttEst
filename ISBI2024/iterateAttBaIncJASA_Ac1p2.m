@@ -3,7 +3,7 @@
 
 setup;
 baseDir = "Q:\smerino\Nonlinearity\attIncNonQuadratic";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12ac1p2";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12ac1p2ref1p2";
 [~,~,~] = mkdir(resultsDir);
 refDir = "Q:\smerino\Nonlinearity\newRef";
 
@@ -43,7 +43,7 @@ blockParams.xlim = [-2.5; 2.5]/100;
 blockParams.downFactor = 20;
 freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
 
-iSim = 1;
+iSim = 2;
 alphaInc = alphaIncVec(iSim);
 
 %% For loop
@@ -57,7 +57,7 @@ for iSim=1:length(alphaIncVec)
     alphaStr = num2str(alphaInc,"%02d");
     fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
         "f12_BA6inc12_nc10_400kPa";
-    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
+    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f12_BA6_nc10_400kPa";
     
     % Sample
     sample = load(fullfile(baseDir,fileSam));
@@ -87,7 +87,7 @@ for iSim=1:length(alphaIncVec)
     maxIte = 200;
     muAlpha = 1; muBeta = 1;
     beta0 = 1+baInit/2;
-    alpha0 = alphaInit*freq^2 *100/NptodB; % Np/m
+    alpha0 = alphaInit*freq^gammaAtt *100/NptodB; % Np/m
     
     theta = [alpha0*ones(n*m,1);beta0*ones(n*m,1)];
     regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
@@ -112,7 +112,7 @@ for iSim=1:length(alphaIncVec)
     alphaArr = theta(1:n*m);
     betaArr = theta(n*m+1:end);
     
-    estAClm = reshape(alphaArr/freq^2 /100*NptodB,[m,n]);
+    estAClm = reshape(alphaArr/freq^gammaAtt /100*NptodB,[m,n]);
     estBAlm = reshape(2*(betaArr-1),[m,n]);
 
     %% Local maps with regularization
@@ -206,7 +206,7 @@ for iSim=1:length(alphaIncVec)
         alphaStr = num2str(alphaInc,"%02d");
         fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
             "f12_BA6inc12_nc10_400kPa";
-        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
+        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f12_BA6_nc10_400kPa";
 
         % Sample
         sample = load(fullfile(baseDir,fileSam));
