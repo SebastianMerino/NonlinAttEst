@@ -3,7 +3,7 @@
 
 setup;
 baseDir = "Q:\smerino\Nonlinearity\attIncNonQuadratic";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12ac1p2ref1p2";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12ac1p2ref1p4";
 [~,~,~] = mkdir(resultsDir);
 refDir = "Q:\smerino\Nonlinearity\newRef";
 
@@ -26,7 +26,7 @@ baInit = 6;
 medium.v = 5;
 medium.betaR = 1 + 6/2;
 medium.alphaRcoeff = 0.1/NptodB*100; % alpha0 in dB/m
-medium.alphaRpower = 1.2;
+medium.alphaRpower = 1.4;
 gammaAtt = 1.2;
 
 % Filtering parameters
@@ -38,7 +38,7 @@ filterParams.nCycles = 10; % Number of cycles of the initial filter
 wl = 1540/5e6; % Mean central frequency
 blockParams.blockSize = [20 20]*wl;
 blockParams.overlap = 0.8;
-blockParams.zlim = [0.5; 5.5]/100;
+blockParams.zlim = [0.5; 5.4]/100;
 blockParams.xlim = [-2.5; 2.5]/100;
 blockParams.downFactor = 20;
 freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
@@ -57,7 +57,7 @@ for iSim=1:length(alphaIncVec)
     alphaStr = num2str(alphaInc,"%02d");
     fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
         "f12_BA6inc12_nc10_400kPa";
-    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f12_BA6_nc10_400kPa";
+    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f14_BA6_nc10_400kPa";
     
     % Sample
     sample = load(fullfile(baseDir,fileSam));
@@ -116,7 +116,7 @@ for iSim=1:length(alphaIncVec)
     estBAlm = reshape(2*(betaArr-1),[m,n]);
 
     %% Local maps with regularization
-    muLocal = 0.01;
+    muLocal = 0.1;
     dzP = zB(2)-zB(1);
     izP = round(zB./dzP);
     factorq = izP(1)./izP;
@@ -206,7 +206,7 @@ for iSim=1:length(alphaIncVec)
         alphaStr = num2str(alphaInc,"%02d");
         fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
             "f12_BA6inc12_nc10_400kPa";
-        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f12_BA6_nc10_400kPa";
+        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f14_BA6_nc10_400kPa";
 
         % Sample
         sample = load(fullfile(baseDir,fileSam));
@@ -249,8 +249,8 @@ for iSim=1:length(alphaIncVec)
     % Hyperparameters
     [m,n,p] = size(bzf);
     tol = 1e-4;
-    muAlpha = 0.01; muBeta = 0.001;
-    rho = 0.1;
+    muAlpha = 10^(-1.5); muBeta = 10^(-2);
+    rho = 1;
     maxIte = 200;
 
     % Initialization
@@ -270,7 +270,7 @@ for iSim=1:length(alphaIncVec)
     Ii = I(:,1:m*n);
     Id = I(:,1+m*n:end);
 
-    % Objective functions
+    %% Objective functions
     Fid = []; Reg = []; Dual = [];
     Fid(1) = 1/2*norm( modelFreq(u,zP,freqVec,gammaAtt) - bzf(:) )^2;
     Reg(1) = muAlpha*TVcalc_isotropic(DP*u(1:m*n),m,n,mask) + ...

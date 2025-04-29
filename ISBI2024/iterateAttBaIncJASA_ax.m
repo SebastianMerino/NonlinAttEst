@@ -3,7 +3,7 @@
 
 setup;
 baseDir = "Q:\smerino\Nonlinearity\attInc\fn2";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc9Ref2p0";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12Ref2p0\res";
 [~,~,~] = mkdir(resultsDir);
 refDir = "Q:\smerino\Nonlinearity\newRef";
 
@@ -53,7 +53,7 @@ for iSim=1:length(alphaIncVec)
     %% Measurements, IUS version
     freq = 5;
     alphaStr = num2str(alphaInc,"%02d");
-    fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc9_att0p1f2inc0p"+alphaStr+ ...
+    fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
     fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
     
@@ -148,52 +148,6 @@ for iSim=1:length(alphaIncVec)
     baInterp = interp2(Xmesh,Zmesh,estBAinst,Xq,Zq);
     acInterp = interp2(Xmesh,Zmesh,estACinst,Xq,Zq);
 
-    % Metrics
-    metricsGN(iSim) = getMetrics(acInterp,baInterp,inc,back,'IUS', ...
-        alphaInc/100,exTime,ite);
-
-    %% Plots
-    figure('Position',imPosition); 
-    im = imagesc(xB*1e2,zB*1e2,estACinst); colorbar;
-    clim(attRange);
-    title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2')
-    axis image
-    colormap turbo; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
-    hold on
-    rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
-        2*radiusDisk,2*radiusDisk]*1e2, 'Curvature',1,...
-        'EdgeColor','w', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-Lx/2,centerDepth-Lz/2,...
-        Lx,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    hold off
-
-    figure('Position',imPosition);  
-    imagesc(xB*1e2,zB(2:end)*1e2,estBAinst); colorbar;
-    clim(baRange);
-    title('B/A');
-    axis image
-    colormap pink; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
-    hold on
-    rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
-        2*radiusDisk,2*radiusDisk]*1e2, 'Curvature',1,...
-        'EdgeColor','w', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-Lx/2,centerDepth-Lz/2,...
-        Lx,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    hold off
-    pause(0.1)
-
     % ---------------------------------------------------------------------- %
     % ---------------------------------------------------------------------- %
     % ---------------------------------------------------------------------- %
@@ -202,7 +156,7 @@ for iSim=1:length(alphaIncVec)
     for iFreq = 1:length(freqVec)
         freq = freqVec(iFreq);
         alphaStr = num2str(alphaInc,"%02d");
-        fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc9_att0p1f2inc0p"+alphaStr+ ...
+        fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
         fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
 
@@ -224,16 +178,6 @@ for iSim=1:length(alphaIncVec)
         filterParams.freqC = freqVec(iFreq);
         [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);
         bzf(:,:,iFreq) = bz;
-
-        % idz = medium.z>0.5e-2&medium.z<5.5e-2; % true(size(medium.z)); %
-        % bmode = db(hilbert(medium.rfH(idz,:,1)));
-        % bmode = bmode - max(bmode (:));
-        % figure,
-        % imagesc(medium.x*100,medium.z(idz)*100,bmode, [-40 0])
-        % colormap gray
-        % axis image
-        % colorbar
-        % title('B-mode')
     end
 
     %% Initialization
@@ -318,61 +262,62 @@ for iSim=1:length(alphaIncVec)
     baInterp = interp2(Xmesh,Zmesh,estBAtv,Xq,Zq);
     acInterp = interp2(Xmesh,Zmesh,estACtv,Xq,Zq);
 
-    % Metrics
-    metricsADMM(iSim) = getMetrics(acInterp,baInterp,inc,back,'ADMM', ...
-        alphaInc/100,exTime,ite);
 
     %% Plots
-    figure('Position',imPosition); 
-    im = imagesc(xP*1e2,zP*1e2,estACtv); colorbar;
-    clim(attRange);
-    title('\alpha_0 in \alpha(f) = \alpha_0 \times f^2')
-    axis image
-    colormap turbo; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
-    hold on
-    rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
-        2*radiusDisk,2*radiusDisk]*1e2, 'Curvature',1,...
-        'EdgeColor','w', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-Lx/2,centerDepth-Lz/2,...
-        Lx,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    hold off
+    midx = round(n/2);
+    [~,midz] = min(abs(centerDepth - zP));
+    latGNTV = estBAtv(midz,:);
+    axGNTV = estBAtv(:,midx);
+    latGNLM = estBAinst(midz-1,:);
+    axGNLM = estBAinst(:,midx);
+    axZ = zP*1e2;
+    latX = xP*1e2;
 
-    figure('Position',imPosition);  
-    imagesc(xP*1e2,zP(2:end)*1e2,estBAtv); colorbar;
-    clim(baRange);
-    title('B/A');
-    axis image
-    colormap pink; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
-    hold on
-    rectangle('Position',[0-radiusDisk,centerDepth-radiusDisk,...
-        2*radiusDisk,2*radiusDisk]*1e2, 'Curvature',1,...
-        'EdgeColor','w', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-Lx/2,centerDepth-Lz/2,...
-        Lx,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    rectangle('Position',[-cx-Lx/4,centerDepth-Lz/2,...
-        Lx/2,Lz]*1e2, 'EdgeColor','k', 'LineStyle','--', 'LineWidth',2)
-    hold off
-    pause(0.1)
+    [axFit] = createFitAx(axZ, axGNTV);
+    [latFit] = createFitLat(latX, latGNTV);
+    % start: 1.35, finish: 3.15
 
+    figure('Position',imPosition);      
+    plot(axGNTV,zP*1e2, 'LineWidth',2)
+    hold on
+    plot(axGNLM,zB(2:end)*1e2, 'LineWidth',2)
+    xline(6, 'k--')
+    xline(12, 'k--')
+    hold off
+    grid on
+    ylabel('Depth [cm]');
+    xlabel('B/A')
+    ax = gca; ax.YDir = "reverse";
+    ylim([zP(2),zP(end)]*100)
+    xlim([3 15])
+    legend('GNTV','GNLM', 'Location','northoutside')
+
+    figure('Position',imPosition);      
+    plot(xP*1e2,latGNTV, 'LineWidth',2)
+    hold on
+    plot(xB*1e2,latGNLM, 'LineWidth',2)
+    yline(6, 'k--')
+    yline(12, 'k--')
+    hold off
+    grid on
+    xlabel('Lateral [cm]');
+    ylabel('B/A')
+    xlim([xP(1),xP(end)]*100)
+    ylim([3 15])
+    legend('GNTV','GNLM', 'Location','northoutside')
+
+
+    %% Metrics
+    axRres(iSim) = (axFit.l1 + axFit.l2)*log(4);
+    latRes(iSim) = (latFit.l1 + latFit.l2)*log(4);
+    
     %%
     save_all_figures_to_directory(resultsDir,...
-        char("sim"+iSim+"fig"),'svg')
+        char("sim"+iSim+"axialfig"),'svg')
     close all
 end
-
 %%
-T = [struct2table(metricsGN);struct2table(metricsADMM)];
-writetable(T,fullfile(resultsDir,'table.xlsx'))
+writetable(array2table([axRres',latRes']),fullfile(resultsDir,'results.xlsx'))
 
 %% Utility functions
 function metrics = getMetrics(AC,BA,inc,back,method,alphaInc,time,ite)

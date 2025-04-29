@@ -1,6 +1,6 @@
 clear, clc
-dataDir = 'Q:\smerino\Nonlinearity\attIncNonQuadratic';
-filesLP = dir(fullfile(dataDir,"*_80kPa.mat"));
+dataDir = 'Q:\smerino\Nonlinearity\newRef';
+filesLP = dir(fullfile(dataDir,"*1f14*80kPa.mat"));
 fnumber = 2;
 element_pitch = 0.3e-3;
 %iFile = 1;
@@ -41,20 +41,20 @@ clear rf1 rf2
 
 
 %%
-offset = 500;
-bmode1 = db(hilbert(rf1(offset:end,:,1)));
-bmode1 = bmode1 - max(bmode1(:));
-bmode2 = db(hilbert(rf2(offset:end,:,1)));
-bmode2 = bmode2 - max(bmode2(:));
-
-figure,
-imagesc(x,z(offset:end),bmode1, [-50 0])
-axis image
-colorbar
-colormap gray
-
-figure,
-imagesc(x,z(offset:end),bmode2, [-50 0])
-axis image
-colorbar
-colormap gray
+% offset = 500;
+% bmode1 = db(hilbert(rf1(offset:end,:,1)));
+% bmode1 = bmode1 - max(bmode1(:));
+% bmode2 = db(hilbert(rf2(offset:end,:,1)));
+% bmode2 = bmode2 - max(bmode2(:));
+% 
+% figure,
+% imagesc(x,z(offset:end),bmode1, [-50 0])
+% axis image
+% colorbar
+% colormap gray
+% 
+% figure,
+% imagesc(x,z(offset:end),bmode2, [-50 0])
+% axis image
+% colorbar
+% colormap gray
