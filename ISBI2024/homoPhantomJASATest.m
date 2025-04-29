@@ -47,24 +47,35 @@ blockParams.xlim = [-1.8; 2]/100;
 blockParams.downFactor = 20;
 
 %% Measurements, IUS version
+medium.fs = 30e6; % new sampling frequency
+medium.maxDepth = 6e-2;
+dz = (1/medium.fs)*c0/2;
+medium.z = (0:dz:medium.maxDepth)';
+
 freq = 6;
 fileSam = "RFfn2_L11-5v_8v40v_"+freq+"MHz_uniform_cornstachx3_1";
-fileRef = "RFfn2_L11-5v_8v40v_"+freq+"MHz_ref_2";
+fileRef = "RFfn2_L11-5v_8v40v_"+freq+"MHz_ref_*";
 
 % Sample
 sample = load(fullfile(baseDir,fileSam));
-medium.z = sample.z';
 medium.x = sample.x;
-medium.fs = sample.fs;
-medium.rfL = sample.rf1(:,:,:);
-medium.rfH = sample.rf2(:,:,:);
+q = 1000; p = round(q*medium.fs/sample.fs);
+medium.rfL = resample(sample.rf1(:,:,:),p,q);
+medium.rfH = resample(sample.rf2(:,:,:),p,q);
+medium.rfL = medium.rfL(1:length(medium.z),:,:);
+medium.rfH = medium.rfH(1:length(medium.z),:,:);
 clear sample
 
 % Reference
-ref = load(fullfile(baseDir,fileRef));
-medium.rfLR = ref.rf1(:,:,:);
-medium.rfHR = ref.rf2(:,:,:);
-clear ref
+refFiles = dir(fullfile(baseDir,fileRef));
+for iFile = 2:3
+    ref = load(fullfile(baseDir,refFiles(iFile).name));
+    rfLR = resample(ref.rf1(:,:,end),p,q);
+    rfHR = resample(ref.rf2(:,:,end),p,q);
+    medium.rfLR(:,:,iFile-1) = rfLR(1:length(medium.z),:);
+    medium.rfHR(:,:,iFile-1) = rfHR(1:length(medium.z),:);
+    clear ref rfLR rfHR
+end
 
 % Measurements
 [bz,zbz,xB,zB] = getMeasurementsIUS(medium,filterParams,blockParams);
@@ -172,7 +183,7 @@ for iFreq = 1:length(freqVec)
     %%
     freq = freqVec(iFreq);
     fileSam = "RFfn2_L11-5v_8v40v_"+freq+"MHz_uniform_cornstachx3_1";
-    fileRef = "RFfn2_L11-5v_8v40v_"+freq+"MHz_ref_2";
+    fileRef = "RFfn2_L11-5v_8v40v_"+freq+"MHz_ref_*";
 
     % Sample
     sample = load(fullfile(baseDir,fileSam));
@@ -185,12 +196,15 @@ for iFreq = 1:length(freqVec)
     clear sample
 
     % Reference
-    ref = load(fullfile(baseDir,fileRef));
-    medium.rfLR = resample(ref.rf1(:,:,:),p,q);
-    medium.rfHR = resample(ref.rf2(:,:,:),p,q);
-    medium.rfLR = medium.rfLR(1:length(medium.z),:,:);
-    medium.rfHR = medium.rfHR(1:length(medium.z),:,:);
-    clear ref
+    refFiles = dir(fullfile(baseDir,fileRef));
+    for iFile = 2:3
+        ref = load(fullfile(baseDir,refFiles(iFile).name));
+        rfLR = resample(ref.rf1(:,:,end),p,q);
+        rfHR = resample(ref.rf2(:,:,end),p,q);
+        medium.rfLR(:,:,iFile-1) = rfLR(1:length(medium.z),:);
+        medium.rfHR(:,:,iFile-1) = rfHR(1:length(medium.z),:);
+        clear ref rfLR rfHR
+    end
 
     filterParams.freqC = freqVec(iFreq);
     [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);

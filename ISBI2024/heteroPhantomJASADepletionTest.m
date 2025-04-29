@@ -78,7 +78,7 @@ dz = (1/medium.fs)*c0/2;
 medium.z = (0:dz:medium.maxDepth)';
 
 fileSam = "RFfn2_L11-5v_8v40v_"+freq+"MHz_inc_cornstachx3_2";
-fileRef = "RFfn2_L11-5v_8v40v_"+freq+"MHz_ref_2";
+fileRef = "RFfn2_L11-5v_8v40v_"+freq+"MHz_ref_*";
 
 % Sample
 sample = load(fullfile(baseDir,fileSam));
@@ -91,12 +91,16 @@ medium.rfH = medium.rfH(1:length(medium.z),:,:);
 clear sample
 
 % Reference
-ref = load(fullfile(baseDir,fileRef));
-medium.rfLR = resample(ref.rf1(:,:,:),p,q);
-medium.rfHR = resample(ref.rf2(:,:,:),p,q);
-medium.rfLR = medium.rfLR(1:length(medium.z),:,:);
-medium.rfHR = medium.rfHR(1:length(medium.z),:,:);
-clear ref
+refFiles = dir(fullfile(baseDir,fileRef));
+for iFile = 1:3
+    ref = load(fullfile(baseDir,refFiles(iFile).name));
+    rfLR = resample(ref.rf1(:,:,end),p,q);
+    rfHR = resample(ref.rf2(:,:,end),p,q);
+    medium.rfLR(:,:,iFile) = rfLR(1:length(medium.z),:);
+    medium.rfHR(:,:,iFile) = rfHR(1:length(medium.z),:);
+    clear ref rfLR rfHR
+end
+
 
 filterParams.freqC = freq;
 [bz,xP,zP] = getMeasurements(medium,filterParams,blockParams);
