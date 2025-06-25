@@ -1,9 +1,12 @@
 clear, clc
-dataDir = 'Q:\smerino\Nonlinearity\newRef';
-filesLP = dir(fullfile(dataDir,"*1f14*80kPa.mat"));
+dataDir = 'Q:\smerino\Nonlinearity\AC_UiX_new';
+resultsDir = fullfile(dataDir,"bf");
+mkdir(resultsDir)
+filesLP = dir(fullfile(dataDir,"PWFOC*7MHz*14*80kPa.mat"));
 fnumber = 2;
-element_pitch = 0.3e-3;
-%iFile = 1;
+freq0 = 7e6;
+nCycles = 10;
+
 %%
 for iFile = 1:length(filesLP)
     file_LP = filesLP(iFile).name;
@@ -13,48 +16,49 @@ for iFile = 1:length(filesLP)
 
     tic
     load(fullfile(dataDir,file_LP))
+    t0 = nCycles/freq0/2;
     z = (1:length(rf_prebf))*(1/fs)*c0/2;
-    x = (1:size(rf_prebf,2))*element_pitch; x = x - mean(x);
+    x = (1:size(rf_prebf,2))*pitch; x = x - mean(x);
     parfor rr = 1:size(rf_prebf,3)
-        rf1(:,:,rr) = bf_planewave((rf_prebf(:,:,rr))',fs,fnumber,c0);
+        rf1(:,:,rr) = bfPlaneWaveAcq(rf_prebf(:,:,rr),x,z,t0,c0,fs,fnumber);
     end
     toc
 
     tic
     load(fullfile(dataDir,file_HP))
     parfor rr = 1:size(rf_prebf,3)
-        rf2(:,:,rr) = bf_planewave((rf_prebf(:,:,rr))',fs,fnumber,c0);
+        rf2(:,:,rr) = bfPlaneWaveAcq(rf_prebf(:,:,rr),x,z,t0,c0,fs,fnumber);
     end
     toc
-
-    save(fullfile(dataDir,file_out),'c0','fs','rf1','rf2','x','z');
-
-    bMode = db(hilbert(rf1(:,:,1)));
-    bMode = bMode - max(bMode(:));
+    
+    zValid = z>1e-3 & z< 5.4e-2; 
+    bMode = getBmode(rf1(zValid,:,1),fs,[1e6,10e6]);
     figure,
-    imagesc(x,z,bMode, [-90 -30])
+    imagesc(x*100,z(zValid)*100,bMode, [-60 0])
     colormap gray
     axis image
+    pause(0.1)
+
+    save(fullfile(resultsDir,file_out),'c0','fs','rf1','rf2','x','z');
+
 end
 
 clear rf1 rf2
 
 
-%%
-% offset = 500;
-% bmode1 = db(hilbert(rf1(offset:end,:,1)));
-% bmode1 = bmode1 - max(bmode1(:));
-% bmode2 = db(hilbert(rf2(offset:end,:,1)));
-% bmode2 = bmode2 - max(bmode2(:));
-% 
+%% Check
+% for aa=1:4
+%     zValid = z>1e-3 & z< 5.4e-2; 
+%     bMode(:,:,aa) = getBmode(rf1(zValid,:,aa),fs,[1e6,10e6]);
+%     figure,
+%     imagesc(x*100,z(zValid)*100,bMode(:,:,aa), [-60 0])
+%     colormap gray
+%     axis image
+%     pause(0.1)
+% end
+% cuec = medfilt2( mean(bMode,3),[420,7], 'symmetric');
 % figure,
-% imagesc(x,z(offset:end),bmode1, [-50 0])
+% imagesc(x*100,z(zValid)*100,cuec)
+% colormap parula
 % axis image
-% colorbar
-% colormap gray
-% 
-% figure,
-% imagesc(x,z(offset:end),bmode2, [-50 0])
-% axis image
-% colorbar
-% colormap gray
+% pause(0.1)

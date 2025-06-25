@@ -1,13 +1,7 @@
-function ps_data = bf_planewave(sensor_data_kwave,fs,fnumber,c)
+function ps_data = bf_planewave(sensor_data_kwave,fs,fnumber,c,x)
 
 data = sensor_data_kwave';
 
-dx = 0.3e-3;
-x=(1:128)*dx; %%% posiciones en x de la imagen
-x = x-mean(x);
-% c = 1540;
-%fs = 1/1.168831168831169e-08; % THIS WILL DEPEND ON THE SAMPLING FREQEUNCY. DOUBLE CHECK IN KWAVE
-%fs = 1/8.348794063079777e-09; % up to third harmonic as well
 tx_positions = x;
 
 

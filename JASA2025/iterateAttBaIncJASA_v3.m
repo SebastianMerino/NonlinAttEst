@@ -3,7 +3,7 @@
 
 setup;
 baseDir = "Q:\smerino\Nonlinearity\attInc\fn2";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc9Ref2p0";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12Ref2p0";
 [~,~,~] = mkdir(resultsDir);
 refDir = "Q:\smerino\Nonlinearity\newRef";
 
@@ -53,7 +53,7 @@ for iSim=1:length(alphaIncVec)
     %% Measurements, IUS version
     freq = 5;
     alphaStr = num2str(alphaInc,"%02d");
-    fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc9_att0p1f2inc0p"+alphaStr+ ...
+    fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
     fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
     
@@ -202,7 +202,7 @@ for iSim=1:length(alphaIncVec)
     for iFreq = 1:length(freqVec)
         freq = freqVec(iFreq);
         alphaStr = num2str(alphaInc,"%02d");
-        fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc9_att0p1f2inc0p"+alphaStr+ ...
+        fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
             "_nc10_400kPa";
         fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
 

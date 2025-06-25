@@ -53,7 +53,7 @@ tone_burst_freq_vector = [5e6, 6e6, 7e6];        % [Hz]
 source_strength_vector = [80, 400]*1e3;
 tone_burst_cycles = 10;
 
-for attInc = [10,12,16,18,20]
+for attInc = [8,10,12,14,16,18,20]
     for iFreq = 1:length(tone_burst_freq_vector)
         tone_burst_freq = tone_burst_freq_vector(iFreq);
         for ss = 1:length(source_strength_vector)
@@ -105,7 +105,7 @@ for attInc = [10,12,16,18,20]
             att_map = single(0.1*ones(Nx,Ny,Nz));
             radius_disk = (9)*1e-3;
             center_depth = 22.5e-3;
-            BonAdiff = 6;
+            BonAdiff = 3;
             attDiff = (attInc/100 - 0.1);
             for mm=1:Nz
                 BonA_map(:,:,mm) =single(BonAdiff * makeDisc(Nx,Ny, round(center_depth/dx), Ny/2, round(radius_disk/dx)));
