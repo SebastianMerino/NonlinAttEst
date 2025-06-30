@@ -188,7 +188,7 @@ xlim(xlimGamma)
 fontsize(fontSize,"points")
 
 %% BA6inc12, reference from uniformBA_inclusionACS
-tFile = fullfile(baseDir,'ba6inc12Ref2p0','table.xlsx');
+tFile = fullfile(baseDir,'newSimulation','ba6inc12Ref2p0','table.xlsx');
 T = readtable(tFile);
 method = categorical(T.method);
 baIncAdmm = T(method=='ADMM',:).BaIncMean;

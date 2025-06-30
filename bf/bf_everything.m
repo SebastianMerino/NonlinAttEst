@@ -2,13 +2,14 @@ clear, clc
 dataDir = 'Q:\smerino\Nonlinearity\AC_UiX_new';
 resultsDir = fullfile(dataDir,"bf");
 mkdir(resultsDir)
-filesLP = dir(fullfile(dataDir,"PWFOC*7MHz*14*80kPa.mat"));
+filesLP = dir(fullfile(dataDir,"PWFOC*5MHz*80kPa.mat"));
 fnumber = 2;
-freq0 = 7e6;
+freq0 = 5e6;
 nCycles = 10;
 
 %%
 for iFile = 1:length(filesLP)
+    clear rf1 rf2
     file_LP = filesLP(iFile).name;
     file_HP = [filesLP(iFile).name(1:end-9),'400kPa.mat'];
     file_out = ['RFfn',num2str(fnumber),'_',file_HP];
