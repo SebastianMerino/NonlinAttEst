@@ -1,6 +1,7 @@
 % Simulating B-mode Ultrasound Images Example
 clearvars; close all; clc;
 addpath(genpath('/opt/MATLAB Add-Ons'))
+parallel.gpu.enableCUDAForwardCompatibility(true)
 
 % Execution
 gpu          = true;
@@ -53,7 +54,7 @@ tone_burst_freq_vector = [4e6];        % [Hz]
 source_strength_vector = [80, 400]*1e3;
 tone_burst_cycles = 10;
 
-for attInc = 8:2:20
+for attInc = [20]
     for iFreq = 1:length(tone_burst_freq_vector)
         tone_burst_freq = tone_burst_freq_vector(iFreq);
         for ss = 1:length(source_strength_vector)
@@ -156,6 +157,13 @@ for attInc = 8:2:20
             save(file_out,'rf_prebf','fs','c0','pitch');
 
             clear rf_prebf transducer
+            [status, result] = system('rm -f /tmp/*.h5');
+            if status == 0
+                disp('Successfully deleted tmp files.');
+            else
+                disp('Error deleting files:');
+                disp(result);
+			end
         end
     end
 end
