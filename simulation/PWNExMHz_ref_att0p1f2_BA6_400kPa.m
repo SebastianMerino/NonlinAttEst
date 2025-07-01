@@ -1,6 +1,7 @@
 % Simulating B-mode Ultrasound Images Example
+clearvars; close all; clc;
+addpath(genpath('/opt/MATLAB Add-Ons'))
 parallel.gpu.enableCUDAForwardCompatibility(true)
-addpath(genpath('/opt/kWave/'))
 
 % Execution
 gpu          = true;
@@ -49,11 +50,11 @@ kgrid.makeTime(c0, cfl, t_end);
 % =========================================================================
 
 % define properties of the input signal
-tone_burst_freq_vector = [5e6, 6e6, 7e6];        % [Hz]
-source_strength_vector = [80, 400]*1e3;
+tone_burst_freq_vector = [5e6,6e6,7e6];        % [Hz]
+source_strength_vector = [80,400]*1e3;
 tone_burst_cycles = 10;
 
-for attRef = [8,10,12,14,16,18,20]
+for attRef = [8,12,14]
     for iFreq = 1:length(tone_burst_freq_vector)
         tone_burst_freq = tone_burst_freq_vector(iFreq);
         for ss = 1:length(source_strength_vector)
@@ -103,7 +104,7 @@ for attRef = [8,10,12,14,16,18,20]
             % =========================================================================
             % Maps of UNIFORM B/A and AC
             BonA_map = single(6*ones(Nx,Ny,Nz));
-            att_map = single(attRef*ones(Nx,Ny,Nz));
+            att_map = single(attRef/100*ones(Nx,Ny,Nz));
 
             medium.sound_speed_ref = c0;
             medium.sound_speed = c0;
@@ -117,7 +118,7 @@ for attRef = [8,10,12,14,16,18,20]
             % set the input settings
             input_args = {...
                 'PMLInside', false, 'PMLSize', 'auto', ...
-                'DataCast', DATA_CAST, 'DataRecast', true, 'PlotSim', true};
+                'DataCast', DATA_CAST, 'PlotSim', false, 'SaveToDisk',false};
 
             % loop through the scan lines
             for aa = 1:4
