@@ -121,7 +121,7 @@ for attRef = [8,12,14]
                 'DataCast', DATA_CAST, 'PlotSim', false, 'SaveToDisk',false};
 
             % loop through the scan lines
-            for aa = 1:4
+            for aa = 1:2
                 filename = fullfile(pwd,"random_media","BAPW_STD2_REF2025_"+aa+".mat");
                 load(filename,'density');
                 % update the command line status

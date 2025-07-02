@@ -2,7 +2,7 @@ clear, clc
 dataDir = 'Q:\smerino\Nonlinearity\AC_UiX_new';
 resultsDir = fullfile(dataDir,"bf");
 mkdir(resultsDir)
-filesLP = dir(fullfile(dataDir,"*4MHz*80kPa.mat"));
+filesLP = dir(fullfile(dataDir,"*4MHz*ref*80kPa.mat"));
 fnumber = 2;
 freq0 = 4e6;
 nCycles = 10;

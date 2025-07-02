@@ -104,7 +104,9 @@ fontsize(fontSize,"points")
 
 
 %% BA6inc9, reference from uniformBA_inclusionACS
-tFile = fullfile(baseDir,'ba6inc9Ref2p0','table.xlsx');
+baLim = [2 16];
+tFile = fullfile(baseDir,'newSimulation','ba6inc9Ref2p0','table.xlsx');
+% tFile = fullfile(baseDir,'ba6inc9Ref2p0','table.xlsx');
 T = readtable(tFile);
 method = categorical(T.method);
 baIncAdmm = T(method=='ADMM',:).BaIncMean;
@@ -189,6 +191,7 @@ fontsize(fontSize,"points")
 
 %% BA6inc12, reference from uniformBA_inclusionACS
 tFile = fullfile(baseDir,'newSimulation','ba6inc12Ref2p0','table.xlsx');
+% tFile = fullfile(baseDir,'ba6inc12Ref2p0','table.xlsx');
 T = readtable(tFile);
 method = categorical(T.method);
 baIncAdmm = T(method=='ADMM',:).BaIncMean;
@@ -272,7 +275,35 @@ xlim(xlimGamma)
 fontsize(fontSize,"points")
 
 %%
-outDir = 'Q:\smerino\Nonlinearity\resultsJASA\plotsRef1p2';
+outDir = 'Q:\smerino\Nonlinearity\resultsJASA\plotsNewSimu';
 mkdir(outDir)
 save_all_figures_to_directory(outDir,'fig','svg')
 close all
+
+%%
+% baLim = [4,18];
+% figure('Position',imPosition),
+% errorbar(alphaInc,baIncAdmm,baIncStdAdmm, 'LineWidth',lineWidth)
+% hold on
+% errorbar(alphaInc,baIncIus,baIncStdIus, 'LineWidth',lineWidth)
+% hold off, grid on
+% yline(12,'k--')
+% title('Inclusion')
+% ylabel('B/A')
+% xlabel('\alpha_{inc}')
+% xlim([0.06,0.24])
+% ylim(baLim)
+% fontsize(fontSize,"points")
+% 
+% figure('Position',imPosition),
+% errorbar(alphaInc,acIncAdmm,acIncStdAdmm, 'LineWidth',lineWidth)
+% hold on
+% errorbar(alphaInc,acIncIus,acIncStdIus, 'LineWidth',lineWidth)
+% plot(alphaInc,alphaInc,'k--')
+% hold off, grid on
+% title('Inclusion')
+% ylabel('\Delta\alpha [dB/cm/MHz^2]')
+% xlabel('\alpha_{inc}')
+% xlim([0.06,0.24])
+% ylim([0.06,0.24])
+% fontsize(fontSize,"points")

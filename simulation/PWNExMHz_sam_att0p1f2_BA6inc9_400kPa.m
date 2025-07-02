@@ -53,7 +53,7 @@ tone_burst_freq_vector = [5e6, 6e6, 7e6];        % [Hz]
 source_strength_vector = [80, 400]*1e3;
 tone_burst_cycles = 10;
 
-for attInc = [8,10,12,14,16,18,20]
+for attInc = [22]
     for iFreq = 1:length(tone_burst_freq_vector)
         tone_burst_freq = tone_burst_freq_vector(iFreq);
         for ss = 1:length(source_strength_vector)
