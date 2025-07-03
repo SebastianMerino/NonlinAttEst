@@ -50,7 +50,7 @@ kgrid.makeTime(c0, cfl, t_end);
 % =========================================================================
 
 % define properties of the input signal
-tone_burst_freq_vector = [5e6, 6e6, 7e6];        % [Hz]
+tone_burst_freq_vector = [7e6];        % [Hz]
 source_strength_vector = [80, 400]*1e3;
 tone_burst_cycles = 10;
 
@@ -163,7 +163,7 @@ for attInc = [22]
             else
                 disp('Error deleting files:');
                 disp(result);
-			end
+            end
         end
     end
 end

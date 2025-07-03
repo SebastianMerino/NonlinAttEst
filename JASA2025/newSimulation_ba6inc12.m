@@ -38,7 +38,7 @@ blockParams.overlap = 0.8;
 blockParams.zlim = [0.5; 5.4]/100;
 blockParams.xlim = [-2.5; 2.5]/100;
 blockParams.downFactor = 20;
-freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
+freqVec = [5,6,7]; % FRECUENCIES FOR FILTERING
 
 iSim = 7;
 alphaInc = alphaIncVec(iSim);
@@ -278,7 +278,7 @@ for iSim=1:length(alphaIncVec)
     % Hyperparameters
     [m,n,p] = size(bzf);
     tol = 1e-4;
-    muAlpha = 10^(-1.5); muBeta = 10^(-2.5);
+    muAlpha = 10^(-2); muBeta = 10^(-2.5);
     rho = 1;
     maxIte = 200;
 

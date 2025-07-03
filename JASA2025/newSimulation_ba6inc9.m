@@ -276,7 +276,7 @@ for iSim=1:length(alphaIncVec)
     % Hyperparameters
     [m,n,p] = size(bzf);
     tol = 1e-4;
-    muAlpha = 10^(-1.5); muBeta = 10^(-2.5);
+    muAlpha = 10^(-2); muBeta = 10^(-2.5);
     rho = 1;
     maxIte = 200;
 
