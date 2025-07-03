@@ -112,29 +112,24 @@ for iSim=1:length(alphaRefVec)
     estAClm = reshape(alphaArr/freq^2 /100*NptodB,[m,n]);
     estBAlm = reshape(2*(betaArr-1),[m,n]);
 
-    baMean = mean(estBAlm(:),'all','omitnan');
-    baStd = std(estBAlm(:),[],'all','omitnan');
-    acMean = mean(estAClm(:),'all','omitnan');
-    acStd = std(estAClm(:),[],'all','omitnan');
-
-    figure('Position',imPosition); 
-    imagesc(xB*1e2,zB*1e2,estBAlm); colorbar;
-    clim(baRange);
-    title("B/A = "+sprintf("%.1f",baMean)+"\pm"+sprintf("%.1f",baStd));
-    axis image
-    colormap pink; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
-
-    figure('Position',imPosition); 
-    imagesc(xB*1e2,zB*1e2,estAClm); colorbar;
-    clim(attRange);
-    title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.2f",acStd));
-    axis image
-    colormap turbo; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
-    pause(0.1)
+    % figure('Position',imPosition); 
+    % imagesc(xB*1e2,zB*1e2,estBAlm); colorbar;
+    % clim(baRange);
+    % title("B/A = "+sprintf("%.1f",baMean)+"\pm"+sprintf("%.1f",baStd));
+    % axis image
+    % colormap pink; colorbar;
+    % xlabel('Lateral [cm]');
+    % ylabel('Depth [cm]');
+    % 
+    % figure('Position',imPosition); 
+    % imagesc(xB*1e2,zB*1e2,estAClm); colorbar;
+    % clim(attRange);
+    % title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.2f",acStd));
+    % axis image
+    % colormap turbo; colorbar;
+    % xlabel('Lateral [cm]');
+    % ylabel('Depth [cm]');
+    % pause(0.1)
 
     metricsIUS(iSim) = getMetrics(estAClm,estBAlm,'IUS',alphaRef);
 
@@ -172,7 +167,48 @@ for iSim=1:length(alphaRefVec)
     alphaL = ones(size(Xmesh))*alphaInit;
     betaL = ones(size(Xmesh))*(1+baInit/2);
     u0 = [alphaL(:)*100/NptodB;betaL(:)];
+    
+    %%
+    baMean = mean(estBAlm(:),'all','omitnan');
+    baStd = std(estBAlm(:),[],'all','omitnan');
+    acMean = mean(estAClm(:),'all','omitnan');
+    acStd = std(estAClm(:),[],'all','omitnan');
 
+    idz = medium.z>1e-2;
+    xBm = medium.x; zBm = medium.z(idz);
+    bmode = getBmode(medium.rfL(idz,:,1),medium.fs,[1e6 10e6]);
+    bmodeRef = getBmode(medium.rfLR(idz,:,1),medium.fs,[1e6 10e6]);
+    roi = ones(size(bmode,[1 2]));
+    ylimBm = [1,5.5]; 
+
+    figure('Position',imPosition);
+    imagesc(xBm*100,zBm*100,bmodeRef, [-50 0])
+    title("B-mode")
+    xlabel('Lateral [cm]')
+    ylabel('Depth [cm]')
+    colormap gray
+    colorbar
+    axis image
+    ylim(ylimBm)
+
+    figure('Position',imPosition);
+    [~,hB,hColor] = imOverlayInterp(bmode,estBAlm,[-50 0],baRange,1,...
+        xB*100,zB*100,roi,xBm*100,zBm*100);
+    title("B/A = "+sprintf("%.1f",baMean)+"\pm"+sprintf("%.1f",baStd));
+    xlabel('Lateral [cm]')
+    ylabel('Depth [cm]')
+    colormap pink
+    ylim(ylimBm)
+
+    figure('Position',imPosition);
+    [~,hB,hColor] = imOverlayInterp(bmode,estAClm,[-50 0],attRange,1,...
+        xB*100,zB*100,roi,xBm*100,zBm*100);
+    title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.3f",acStd));
+    xlabel('Lateral [cm]')
+    ylabel('Depth [cm]')
+    colormap turbo
+    hColor.Label.String = 'db/cm/MHz^\gamma';
+    ylim(ylimBm)
     
     %% ADMM
     % Optimizes F(u) + R(v)
@@ -243,24 +279,42 @@ for iSim=1:length(alphaRefVec)
     acMean = mean(estACtv(:),'all','omitnan');
     acStd = std(estACtv(:),[],'all','omitnan');
 
-    figure('Position',imPosition); 
-    imagesc(xP*1e2,zP*1e2,estBAtv); colorbar;
-    clim(baRange);
+    % figure('Position',imPosition); 
+    % imagesc(xP*1e2,zP*1e2,estBAtv); colorbar;
+    % clim(baRange);
+    % title("B/A = "+sprintf("%.1f",baMean)+"\pm"+sprintf("%.1f",baStd));
+    % axis image
+    % colormap pink; colorbar;
+    % xlabel('Lateral [cm]');
+    % ylabel('Depth [cm]');
+    % 
+    % figure('Position',imPosition); 
+    % im = imagesc(xP*1e2,zP*1e2,estACtv); colorbar;
+    % clim(attRange);
+    % title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.2f",acStd));
+    % axis image
+    % colormap turbo; colorbar;
+    % xlabel('Lateral [cm]');
+    % ylabel('Depth [cm]');
+    % pause(0.1)
+    figure('Position',imPosition);
+    [~,hB,hColor] = imOverlayInterp(bmode,estBAtv,[-50 0],baRange,1,...
+        xP*100,zP*100,roi,xBm*100,zBm*100);
     title("B/A = "+sprintf("%.1f",baMean)+"\pm"+sprintf("%.1f",baStd));
-    axis image
-    colormap pink; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
+    xlabel('Lateral [cm]')
+    ylabel('Depth [cm]')
+    colormap pink
+    ylim(ylimBm)
 
-    figure('Position',imPosition); 
-    im = imagesc(xP*1e2,zP*1e2,estACtv); colorbar;
-    clim(attRange);
-    title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.2f",acStd));
-    axis image
-    colormap turbo; colorbar;
-    xlabel('Lateral [cm]');
-    ylabel('Depth [cm]');
-    pause(0.1)
+    figure('Position',imPosition);
+    [~,hB,hColor] = imOverlayInterp(bmode,estACtv,[-50 0],attRange,1,...
+        xP*100,zP*100,roi,xBm*100,zBm*100);
+    title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.3f",acStd));
+    xlabel('Lateral [cm]')
+    ylabel('Depth [cm]')
+    colormap turbo
+    hColor.Label.String = 'db/cm/MHz^\gamma';
+    ylim(ylimBm)
 
     metricsADMM(iSim) = getMetrics(estACtv,estBAtv,'ADMM',alphaRef);
 
