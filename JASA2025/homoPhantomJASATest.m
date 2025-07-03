@@ -130,25 +130,34 @@ acStd = std(estAClm(:),[],'omitnan');
 fprintf('AC: %.3f +/- %.3f\n', acMean, acStd);
 fprintf('B/A: %.2f +/- %.2f\n', baMean,baStd);
 
-figure('Position',imPosition);
-imagesc(xB*1e2,zB*1e2,estBAlm); colorbar;
-clim(baRange);
-title("B/A = "+num2str(baMean,2)+"+/-"+num2str(baStd,2));
-axis image
-colormap pink; colorbar;
-xlabel('Lateral [cm]');
-ylabel('Depth [cm]');
+% figure('Position',imPosition);
+% imagesc(xB*1e2,zB*1e2,estBAlm); colorbar;
+% clim(baRange);
+% title("B/A = "+num2str(baMean,2)+"+/-"+num2str(baStd,2));
+% axis image
+% colormap pink; colorbar;
+% xlabel('Lateral [cm]');
+% ylabel('Depth [cm]');
+% 
+% figure('Position',imPosition);
+% imagesc(xB*1e2,zB*1e2,estAClm); colorbar;
+% clim(attRange);
+% title("\alpha_0 = "+num2str(acMean,2)+"+/-"+num2str(acStd,2));
+% axis image
+% colormap turbo; colorbar;
+% xlabel('Lateral [cm]');
+% ylabel('Depth [cm]');
+% pause(0.1)
 
 figure('Position',imPosition);
-imagesc(xB*1e2,zB*1e2,estAClm); colorbar;
-clim(attRange);
-title("\alpha_0 = "+num2str(acMean,2)+"+/-"+num2str(acStd,2));
+imagesc(xBm*100,zBm*100, bmode(:,:,1),[-50 0]);
+title('B-mode')
+xlabel('Lateral [cm]')
+ylabel('Depth [cm]')
+colormap gray
 axis image
-colormap turbo; colorbar;
-xlabel('Lateral [cm]');
-ylabel('Depth [cm]');
-pause(0.1)
-
+ylim(ylimBm)
+colorbar
 %%
 roi = ones(size(bmode,[1 2]));
 figure('Position',imPosition);
@@ -161,13 +170,13 @@ colormap pink
 ylim(ylimBm)
 
 figure('Position',imPosition);
-[~,hB,hColor] = imOverlayInterp(bmode(:,:,1),estAClm,[-50 0],attRange,0.7,...
+[~,hB,hColor] = imOverlayInterp(bmode(:,:,1),estAClm,[-50 0],attRange,1,...
     xB*100,zB*100,roi,xBm*100,zBm*100);
 title('\alpha_0')
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
 colormap turbo
-hColor.Label.String = 'db/cm/MHz^2';
+hColor.Label.String = 'db/cm/MHz^\gamma';
 ylim(ylimBm)
 
 
@@ -294,24 +303,24 @@ acStd = std(estACtv(:),[],'omitnan');
 fprintf('AC: %.3f +/- %.3f\n', acMean, acStd);
 fprintf('B/A: %.2f +/- %.2f\n', baMean,baStd);
 
-figure('Position',imPosition);
-imagesc(xB*1e2,zB*1e2,estBAtv); colorbar;
-clim(baRange);
-title("B/A = "+num2str(baMean,2)+"+/-"+num2str(baStd,2));
-axis image
-colormap pink; colorbar;
-xlabel('Lateral [cm]');
-ylabel('Depth [cm]');
-
-figure('Position',imPosition);
-imagesc(xB*1e2,zB*1e2,estACtv); colorbar;
-clim(attRange);
-title("\alpha_0 = "+num2str(acMean,2)+"+/-"+num2str(acStd,2));
-axis image
-colormap turbo; colorbar;
-xlabel('Lateral [cm]');
-ylabel('Depth [cm]');
-pause(0.1)
+% figure('Position',imPosition);
+% imagesc(xB*1e2,zB*1e2,estBAtv); colorbar;
+% clim(baRange);
+% title("B/A = "+num2str(baMean,2)+"+/-"+num2str(baStd,2));
+% axis image
+% colormap pink; colorbar;
+% xlabel('Lateral [cm]');
+% ylabel('Depth [cm]');
+% 
+% figure('Position',imPosition);
+% imagesc(xB*1e2,zB*1e2,estACtv); colorbar;
+% clim(attRange);
+% title("\alpha_0 = "+num2str(acMean,2)+"+/-"+num2str(acStd,2));
+% axis image
+% colormap turbo; colorbar;
+% xlabel('Lateral [cm]');
+% ylabel('Depth [cm]');
+% pause(0.1)
 
 %%
 roi = ones(size(bmode,[1 2]));
@@ -325,13 +334,13 @@ colormap pink
 ylim(ylimBm)
 
 figure('Position',imPosition);
-[~,hB,hColor] = imOverlayInterp(bmode(:,:,2),estACtv,[-50 0],attRange,0.7,...
+[~,hB,hColor] = imOverlayInterp(bmode(:,:,2),estACtv,[-50 0],attRange,1,...
     xP*100,zP*100,roi,xBm*100,zBm*100);
 title('\alpha_0')
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
 colormap turbo
-hColor.Label.String = '[db/cm/MHz^2]';
+hColor.Label.String = '[db/cm/MHz^\gamma]';
 ylim(ylimBm)
 %%
 save_all_figures_to_directory(resultsDir,'homoFig','svg')

@@ -1,11 +1,11 @@
 % New methods with frequency compounding. Requires three transmissions
-% Used for showing iterating and showing results for ba6inc9
+% Used for showing results
 
 setup;
 baseDir = "Q:\smerino\Nonlinearity\AC_UiX_new\bf";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\newSimulation\ba6inc9Ref2p0";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\newSimulation\ba6inc12ref1p4";
 [~,~,~] = mkdir(resultsDir);
-refDir = "Q:\smerino\Nonlinearity\AC_UiX_new\bf";
+refDir = "Q:\smerino\Nonlinearity\AC_UiX_new\newPowerLaw\bf";
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));
@@ -16,7 +16,7 @@ imPosition = [100 200 200 250];
 baRange = [4 13];
 attRange = [0.08,0.22];
 
-alphaIncVec = 8:2:20;
+alphaIncVec = [8,14];
 
 alphaInit = 0.1;
 baInit = 6;
@@ -25,9 +25,12 @@ baInit = 6;
 % Known variables
 medium.v = 5;
 medium.betaR = 1 + 6/2;
-medium.alphaR = 0.1/NptodB*100; % alpha0 in dB/100/MHz2
+medium.alphaRcoeff = 0.1/NptodB*100; % alpha0 in dB/m
+medium.alphaRpower = 1.4;
+gammaAtt = 2;
 
 % Filtering parameters
+filterParams.freqC = 5;
 filterParams.freqTol = 0.5;
 filterParams.nCycles = 10; % Number of cycles of the initial filter
 
@@ -35,12 +38,12 @@ filterParams.nCycles = 10; % Number of cycles of the initial filter
 wl = 1540/6e6; % Mean central frequency
 blockParams.blockSize = [25 25]*wl;
 blockParams.overlap = 0.8;
-blockParams.zlim = [0.5; 5.4]/100;
+blockParams.zlim = [0.5; 4.5]/100;
 blockParams.xlim = [-2.5; 2.5]/100;
 blockParams.downFactor = 20;
 freqVec = [5,6,7]; % FRECUENCIES FOR FILTERING
 
-iSim = 1;
+iSim = 2;
 alphaInc = alphaIncVec(iSim);
 
 %% For loop
@@ -53,26 +56,25 @@ for iSim=1:length(alphaIncVec)
     freq = 5;
     alphaStr = num2str(alphaInc,"%02d");
     fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
-            "f20_BA6inc9_nc10_400kPa";
-    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
+            "f20_BA6inc12_nc10_400kPa";
+    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f14_BA6_nc10_400kPa";
     
     % Sample
     sample = load(fullfile(baseDir,fileSam));
     medium.z = sample.z';
     medium.x = sample.x;
     medium.fs = sample.fs;
-    medium.rfL = sample.rf1(:,:,1:2);
-    medium.rfH = sample.rf2(:,:,1:2);
+    medium.rfL = sample.rf1(:,:,:);
+    medium.rfH = sample.rf2(:,:,:);
     clear sample
     
     % Reference
     ref = load(fullfile(refDir,fileRef));
-    medium.rfLR = ref.rf1(:,:,1:4);
-    medium.rfHR = ref.rf2(:,:,1:4);
+    medium.rfLR = ref.rf1(:,:,:);
+    medium.rfHR = ref.rf2(:,:,:);
     clear ref
     
     % Measurements
-    filterParams.freqC = freq;
     [bz,zbz,xB,zB] = getMeasurementsIUS(medium,filterParams,blockParams);
     X = permute(zbz,[3 1 2]);
     Y = permute(bz,[3 1 2]);
@@ -83,9 +85,9 @@ for iSim=1:length(alphaIncVec)
     
     tol = 1e-3;
     maxIte = 200;
-    muAlpha = 3; muBeta = 3;
+    muAlpha = 1; muBeta = 1;
     beta0 = 1+baInit/2;
-    alpha0 = alphaInit*freq^2 *100/NptodB; % Np/m
+    alpha0 = alphaInit*freq^gammaAtt *100/NptodB; % Np/m
     
     theta = [alpha0*ones(n*m,1);beta0*ones(n*m,1)];
     regMatrix = blkdiag(muAlpha*speye(n*m),muBeta*speye(n*m));
@@ -110,11 +112,11 @@ for iSim=1:length(alphaIncVec)
     alphaArr = theta(1:n*m);
     betaArr = theta(n*m+1:end);
     
-    estAClm = reshape(alphaArr/freq^2 /100*NptodB,[m,n]);
+    estAClm = reshape(alphaArr/freq^gammaAtt /100*NptodB,[m,n]);
     estBAlm = reshape(2*(betaArr-1),[m,n]);
 
     %% Local maps with regularization
-    muLocal = 0.01;
+    muLocal = 0.1;
     dzP = zB(2)-zB(1);
     izP = round(zB./dzP);
     factorq = izP(1)./izP;
@@ -157,7 +159,7 @@ for iSim=1:length(alphaIncVec)
     idealAC = 0.1*ones(size(Xq));
     idealAC(incBm) = alphaInc/100;
     idealBA = 6*ones(size(Xq));
-    idealBA(incBm) = 9;
+    idealBA(incBm) = 12;
 
     figure('Position',imPosition); 
     im = imagesc(xBm*1e2,zBm*1e2,idealAC); colorbar;
@@ -232,22 +234,22 @@ for iSim=1:length(alphaIncVec)
         freq = freqVec(iFreq);
         alphaStr = num2str(alphaInc,"%02d");
         fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
-                "f20_BA6inc9_nc10_400kPa";
-        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
+                "f20_BA6inc12_nc10_400kPa";
+        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f14_BA6_nc10_400kPa";
 
         % Sample
         sample = load(fullfile(baseDir,fileSam));
         medium.z = sample.z';
         medium.x = sample.x;
         medium.fs = sample.fs;
-        medium.rfL = sample.rf1(:,:,1:2);
-        medium.rfH = sample.rf2(:,:,1:2);
+        medium.rfL = sample.rf1(:,:,:);
+        medium.rfH = sample.rf2(:,:,:);
         clear sample
 
         % Reference
         ref = load(fullfile(refDir,fileRef));
-        medium.rfLR = ref.rf1(:,:,1:4);
-        medium.rfHR = ref.rf2(:,:,1:4);
+        medium.rfLR = ref.rf1(:,:,:);
+        medium.rfHR = ref.rf2(:,:,:);
         clear ref
 
         filterParams.freqC = freqVec(iFreq);
@@ -276,7 +278,7 @@ for iSim=1:length(alphaIncVec)
     % Hyperparameters
     [m,n,p] = size(bzf);
     tol = 1e-4;
-    muAlpha = 10^(-2); muBeta = 10^(-2.5);
+    muAlpha = 10^(-2.5); muBeta = 10^(-3);
     rho = 1;
     maxIte = 200;
 
@@ -297,9 +299,9 @@ for iSim=1:length(alphaIncVec)
     Ii = I(:,1:m*n);
     Id = I(:,1+m*n:end);
 
-    % Objective functions
+    %% Objective functions
     Fid = []; Reg = []; Dual = [];
-    Fid(1) = 1/2*norm( modelFreq(u,zP,freqVec) - bzf(:) )^2;
+    Fid(1) = 1/2*norm( modelFreq(u,zP,freqVec,gammaAtt) - bzf(:) )^2;
     Reg(1) = muAlpha*TVcalc_isotropic(DP*u(1:m*n),m,n,mask) + ...
         muBeta*TVcalc_isotropic(DP*u(m*n+1:end),m,n,mask);
     Dual(1) = 0;
@@ -310,7 +312,7 @@ for iSim=1:length(alphaIncVec)
         ite = ite + 1;
 
         % Fidelity step
-        u = optimNonLinearGNFreq(zP,freqVec,bzf(:), speye(2*m*n),v-w, rho, tol,u);
+        u = optimNonLinearGNFreq(zP,freqVec,bzf(:), speye(2*m*n),v-w, rho, tol,u, gammaAtt);
 
         % Regularization step
         v = optimAdmmTvDy(Ii,Id,u+w, muAlpha/rho,muBeta/rho ,m,n,tol,mask,DP);
@@ -319,7 +321,7 @@ for iSim=1:length(alphaIncVec)
         w = w + u - v;
 
         % Loss
-        Fid(ite+1) = 1/2*norm( modelFreq(u,zP,freqVec) - bzf(:) )^2;
+        Fid(ite+1) = 1/2*norm( modelFreq(u,zP,freqVec,gammaAtt) - bzf(:) )^2;
         Reg(ite+1) = muAlpha*TVcalc_isotropic(DP*v(1:m*n),m,n,mask) + ...
             muBeta*TVcalc_isotropic(DP*v(m*n+1:end),m,n,mask);
         Dual(ite+1) = norm(u-v);

@@ -83,7 +83,7 @@ for iSim=1:length(alphaIncVec)
     
     tol = 1e-3;
     maxIte = 200;
-    muAlpha = 1; muBeta = 1;
+    muAlpha = 3; muBeta = 3;
     beta0 = 1+baInit/2;
     alpha0 = alphaInit*freq^2 *100/NptodB; % Np/m
     
@@ -114,7 +114,7 @@ for iSim=1:length(alphaIncVec)
     estBAlm = reshape(2*(betaArr-1),[m,n]);
 
     %% Local maps with regularization
-    muLocal = 0.01;
+    muLocal = 0.001;
     dzP = zB(2)-zB(1);
     izP = round(zB./dzP);
     factorq = izP(1)./izP;

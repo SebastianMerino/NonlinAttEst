@@ -1,11 +1,11 @@
 % New methods with frequency compounding. Requires three transmissions
 % Used for showing results
 
-setup;
-baseDir = "Q:\smerino\Nonlinearity\attInc\fn2";
-resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\ba6inc12Ref2p0\res";
+startup;
+baseDir = "Q:\smerino\Nonlinearity\AC_UiX_new\bf";
+resultsDir = "Q:\smerino\Nonlinearity\resultsJASA\newSimulation\ba6inc12Ref2p0\res";
 [~,~,~] = mkdir(resultsDir);
-refDir = "Q:\smerino\Nonlinearity\newRef";
+refDir = "Q:\smerino\Nonlinearity\AC_UiX_new\bf";
 
 % Auxiliar variables
 NptodB = 20*log10(exp(1));
@@ -16,7 +16,7 @@ imPosition = [100 200 250 300];
 baRange = [4 13];
 attRange = [0.08,0.22];
 
-alphaIncVec = 8:2:22;
+alphaIncVec = [8,14];
 
 alphaInit = 0.1;
 baInit = 6;
@@ -33,13 +33,13 @@ filterParams.freqTol = 0.5;
 filterParams.nCycles = 10; % Number of cycles of the initial filter
 
 % Subsampling parameters
-wl = 1540/5e6; % Mean central frequency
-blockParams.blockSize = [20 20]*wl;
+wl = 1540/6e6; % Mean central frequency
+blockParams.blockSize = [25 25]*wl;
 blockParams.overlap = 0.8;
 blockParams.zlim = [0.5; 5.4]/100;
 blockParams.xlim = [-2.5; 2.5]/100;
 blockParams.downFactor = 20;
-freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
+freqVec = [5,6,7]; % FRECUENCIES FOR FILTERING
 
 iSim = 1;
 alphaInc = alphaIncVec(iSim);
@@ -53,8 +53,8 @@ for iSim=1:length(alphaIncVec)
     %% Measurements, IUS version
     freq = 5;
     alphaStr = num2str(alphaInc,"%02d");
-    fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
-            "_nc10_400kPa";
+    fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
+            "f20_BA6inc12_nc10_400kPa";
     fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
     
     % Sample
@@ -156,8 +156,8 @@ for iSim=1:length(alphaIncVec)
     for iFreq = 1:length(freqVec)
         freq = freqVec(iFreq);
         alphaStr = num2str(alphaInc,"%02d");
-        fileSam = "RFfn2_PWNE"+freq+"MHz_samincBA6inc12_att0p1f2inc0p"+alphaStr+ ...
-            "_nc10_400kPa";
+        fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p1inc0p"+alphaStr+ ...
+                "f20_BA6inc12_nc10_400kPa";
         fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p1f20_BA6_nc10_400kPa";
 
         % Sample
@@ -289,7 +289,7 @@ for iSim=1:length(alphaIncVec)
     xlabel('B/A')
     ax = gca; ax.YDir = "reverse";
     ylim([zP(2),zP(end)]*100)
-    xlim([3 15])
+    xlim([2 16])
     legend('GNTV','GNLM', 'Location','northoutside')
 
     figure('Position',imPosition);      
@@ -303,7 +303,7 @@ for iSim=1:length(alphaIncVec)
     xlabel('Lateral [cm]');
     ylabel('B/A')
     xlim([xP(1),xP(end)]*100)
-    ylim([3 15])
+    ylim([2 16])
     legend('GNTV','GNLM', 'Location','northoutside')
 
 

@@ -1,9 +1,9 @@
 % New methods with frequency compounding. Requires three transmissions
 % Used for showing results
 
-setup;
-baseDir = 'Q:\smerino\Nonlinearity\homoAttMismatch\fn2';
-resultsDir = 'Q:\smerino\Nonlinearity\resultsJASA\homoBA9';
+startup;
+baseDir = 'Q:\smerino\Nonlinearity\AC_UiX_new\homog\bf';
+resultsDir = 'Q:\smerino\Nonlinearity\resultsJASA\newSimulation\homoBA12';
 [~,~,~] = mkdir(resultsDir);
 
 % Auxiliar variables
@@ -30,41 +30,43 @@ filterParams.freqTol = 0.5;
 filterParams.nCycles = 10; % Number of cycles of the initial filter
 
 % Subsampling parameters
-wl = 1540/5e6; % Mean central frequency
+wl = 1540/6e6; % Mean central frequency
 blockParams.blockSize = [25 25]*wl;
 blockParams.overlap = 0.8;
-blockParams.zlim = [1; 5.5]/100;
+blockParams.zlim = [1; 5]/100;
 blockParams.xlim = [-2.5; 2.5]/100;
 blockParams.downFactor = 20;
 
-freqVec = [4,5,6]; % FRECUENCIES FOR FILTERING
-
+freqVec = [5,6,7]; % FRECUENCIES FOR FILTERING
+iSim = 1;
 %% For loop
 for iSim=1:length(alphaRefVec)
     %%
+    zMax = -(iSim-1)/7*3+5.5;
+    blockParams.zlim(2) = zMax/100;
     alphaRef = alphaRefVec(iSim);
     alphaInit = alphaRef;
     medium.alphaR = alphaRef/NptodB*100; % alpha0 in dB/100/MHz2
 
     %% Measurements, IUS version
     freq = 5;
-    fileSam = "RFfn2_PWNE"+freq+"MHz_samBA9_att0p10f2_nc10_400kPa";
-    fileRef = "RFfn2_PWNE"+freq+"MHz_refBA6_att0p"+...
-        num2str(round(100*alphaRef), '%02d')+"f2p0_400kPa";
+    fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p10f20_BA12_nc10_400kPa";
+    fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p"+...
+        num2str(round(100*alphaRef), '%02d')+"f20_BA6_nc10_400kPa";
     
     % Sample
     sample = load(fullfile(baseDir,fileSam));
     medium.z = sample.z';
     medium.x = sample.x;
     medium.fs = sample.fs;
-    medium.rfL = sample.rf1(:,:,:);
-    medium.rfH = sample.rf2(:,:,:);
+    medium.rfL = sample.rf1(:,:,1:2);
+    medium.rfH = sample.rf2(:,:,1:2);
     clear sample
     
     % Reference
     ref = load(fullfile(baseDir,fileRef));
-    medium.rfLR = ref.rf1(:,:,:);
-    medium.rfHR = ref.rf2(:,:,:);
+    medium.rfLR = ref.rf1(:,:,1:2);
+    medium.rfHR = ref.rf2(:,:,1:2);
     clear ref
     
     % Measurements
@@ -109,15 +111,15 @@ for iSim=1:length(alphaRefVec)
     estAClm = reshape(alphaArr/freq^2 /100*NptodB,[m,n]);
     estBAlm = reshape(2*(betaArr-1),[m,n]);
 
-    baMean = mean(estBAlm(:),'omitnan');
-    baStd = std(estBAlm(:),[],'omitnan');
-    acMean = mean(estAClm(:),'omitnan');
-    acStd = std(estAClm(:),[],'omitnan');
+    baMean = mean(estBAlm(:),'all','omitnan');
+    baStd = std(estBAlm(:),[],'all','omitnan');
+    acMean = mean(estAClm(:),'all','omitnan');
+    acStd = std(estAClm(:),[],'all','omitnan');
 
     figure('Position',imPosition); 
     imagesc(xB*1e2,zB*1e2,estBAlm); colorbar;
     clim(baRange);
-    title("B/A = "+num2str(baMean,2)+"\pm"+num2str(baStd,2));
+    title("B/A = "+sprintf("%.1f",baMean)+"\pm"+sprintf("%.1f",baStd));
     axis image
     colormap pink; colorbar;
     xlabel('Lateral [cm]');
@@ -126,7 +128,7 @@ for iSim=1:length(alphaRefVec)
     figure('Position',imPosition); 
     imagesc(xB*1e2,zB*1e2,estAClm); colorbar;
     clim(attRange);
-    title("\alpha_0 = "+num2str(acMean,2)+"\pm"+num2str(acStd,1));
+    title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.2f",acStd));
     axis image
     colormap turbo; colorbar;
     xlabel('Lateral [cm]');
@@ -140,23 +142,23 @@ for iSim=1:length(alphaRefVec)
     bzf = [];
     for iFreq = 1:length(freqVec)
         freq = freqVec(iFreq);
-        fileSam = "RFfn2_PWNE"+freq+"MHz_samBA9_att0p10f2_nc10_400kPa";
-        fileRef = "RFfn2_PWNE"+freq+"MHz_refBA6_att0p"+...
-            num2str(round(100*alphaRef), '%02d')+"f2p0_400kPa";
+        fileSam = "RFfn2_PWNE"+freq+"MHz_sam_att0p10f20_BA12_nc10_400kPa";
+        fileRef = "RFfn2_PWNE"+freq+"MHz_ref_att0p"+...
+            num2str(round(100*alphaRef), '%02d')+"f20_BA6_nc10_400kPa";
 
         % Sample
         sample = load(fullfile(baseDir,fileSam));
         medium.z = sample.z';
         medium.x = sample.x;
         medium.fs = sample.fs;
-        medium.rfL = sample.rf1(:,:,:);
-        medium.rfH = sample.rf2(:,:,:);
+        medium.rfL = sample.rf1(:,:,1:2);
+        medium.rfH = sample.rf2(:,:,1:2);
         clear sample
 
         % Reference
         ref = load(fullfile(baseDir,fileRef));
-        medium.rfLR = ref.rf1(:,:,:);
-        medium.rfHR = ref.rf2(:,:,:);
+        medium.rfLR = ref.rf1(:,:,1:2);
+        medium.rfHR = ref.rf2(:,:,1:2);
         clear ref
 
         filterParams.freqC = freqVec(iFreq);
@@ -176,7 +178,7 @@ for iSim=1:length(alphaRefVec)
     % Hyperparameters
     [m,n,p] = size(bzf);
     tol = 1e-3;
-    muAlpha = 1; muBeta = 0.1;
+    muAlpha = 10^(-1); muBeta = 10^(-1.5);
     rho = 1;
     maxIte = 200;
 
@@ -235,15 +237,15 @@ for iSim=1:length(alphaRefVec)
     estACtv = alphaArr*NptodB/100;
     estBAtv = 2*(betaArr-1);
 
-    baMean = mean(estBAtv(:),'omitnan');
-    baStd = std(estBAtv(:),[],'omitnan');
-    acMean = mean(estACtv(:),'omitnan');
-    acStd = std(estACtv(:),[],'omitnan');
+    baMean = mean(estBAtv(:),'all','omitnan');
+    baStd = std(estBAtv(:),[],'all','omitnan');
+    acMean = mean(estACtv(:),'all','omitnan');
+    acStd = std(estACtv(:),[],'all','omitnan');
 
     figure('Position',imPosition); 
     imagesc(xP*1e2,zP*1e2,estBAtv); colorbar;
     clim(baRange);
-    title("B/A = "+num2str(baMean,2)+"\pm"+num2str(baStd,2));
+    title("B/A = "+sprintf("%.1f",baMean)+"\pm"+sprintf("%.1f",baStd));
     axis image
     colormap pink; colorbar;
     xlabel('Lateral [cm]');
@@ -252,7 +254,7 @@ for iSim=1:length(alphaRefVec)
     figure('Position',imPosition); 
     im = imagesc(xP*1e2,zP*1e2,estACtv); colorbar;
     clim(attRange);
-    title("\alpha_0 = "+num2str(acMean,2)+"\pm"+num2str(acStd,1));
+    title("\alpha_0 = "+sprintf("%.2f",acMean)+"\pm"+sprintf("%.2f",acStd));
     axis image
     colormap turbo; colorbar;
     xlabel('Lateral [cm]');

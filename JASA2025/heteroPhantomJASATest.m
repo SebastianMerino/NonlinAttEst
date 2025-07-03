@@ -41,7 +41,8 @@ filterParams.nCycles = 10; % Number of cycles of the initial filter
 wl = c0/filterParams.freqC/1e6; % Mean central frequency
 blockParams.blockSize = [30 30]*wl;
 blockParams.overlap = 0.8;
-blockParams.zlim = [2; 5.7]/100;
+% blockParams.zlim = [2; 5.7]/100;
+blockParams.zlim = [2; 5.1]/100;
 blockParams.xlim = [-1.8; 2]/100;
 
 blockParams.downFactor = 20;
@@ -141,6 +142,16 @@ fprintf('B/A inc: %.2f +/- %.2f\n', mean(BaInterp(inc),'omitnan'), ...
 fprintf('B/A back: %.2f +/- %.2f\n', mean(BaInterp(back),'omitnan'), ...
     std(BaInterp(back), [] ,'omitnan'));
 
+figure('Position',imPosition);
+imagesc(xBm*100,zBm*100, bmode(:,:,1),[-50 0]);
+title('B-mode')
+xlabel('Lateral [cm]')
+ylabel('Depth [cm]')
+colormap gray
+axis image
+ylim(ylimBm)
+colorbar
+
 %%
 [X,Z] = meshgrid(xBm,zBm);
 incPlot = (X-cx).^2./rx^2 + (Z-cz).^2./rz^2 < 1^2;
@@ -161,13 +172,13 @@ contour(xBm*100,zBm*100,incPlot,1,'w--', 'LineWidth',2)
 hold off
 
 figure('Position',imPosition);
-[~,hB,hColor] = imOverlayInterp(bmode(:,:,1),estAClm,[-50 0],attRange,0.7,...
+[~,hB,hColor] = imOverlayInterp(bmode(:,:,1),estAClm,[-50 0],attRange,1,...
     xB*100,zB*100,roi,xBm*100,zBm*100);
 title('\alpha_0')
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
 colormap turbo
-hColor.Label.String = 'db/cm/MHz^2';
+hColor.Label.String = 'db/cm/MHz^\gamma';
 ylim(ylimBm)
 hold on
 contour(xBm*100,zBm*100,incPlot,1,'w--', 'LineWidth',2)
@@ -333,13 +344,13 @@ contour(xBm*100,zBm*100,incPlot,1,'w--', 'LineWidth',2)
 hold off
 
 figure('Position',imPosition);
-[~,hB,hColor] = imOverlayInterp(bmode(:,:,2),estACtv,[-50 0],attRange,0.7,...
+[~,hB,hColor] = imOverlayInterp(bmode(:,:,2),estACtv,[-50 0],attRange,1,...
     xP*100,zP*100,roi,xBm*100,zBm*100);
 title('\alpha_0')
 xlabel('Lateral [cm]')
 ylabel('Depth [cm]')
 colormap turbo
-hColor.Label.String = '[db/cm/MHz^2]';
+hColor.Label.String = '[db/cm/MHz^\gamma]';
 ylim(ylimBm)
 hold on
 contour(xBm*100,zBm*100,incPlot,1,'w--', 'LineWidth',2)

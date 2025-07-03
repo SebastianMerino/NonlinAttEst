@@ -4,12 +4,13 @@ fontSize = 12;
 legendCell = {'GNTV','GNLM'};
 legendLoc = 'northwest'; 
 baseDir = 'Q:\smerino\Nonlinearity\resultsJASA';
-baLim = [1 15];
 
 %% Homogeneous data
-tFile = fullfile(baseDir,'homoBA9','homoRef.xlsx');
+tFile = fullfile(baseDir,'newSimulation','homoBA9','homoRef.xlsx');
 T = readtable(tFile);
 method = categorical(T.method);
+baLim = [3 17];
+acLim = [0 0.35];
 
 baAdmm = T(method=='ADMM',:).baMean;
 baStdAdmm = T(method=='ADMM',:).baStd;
@@ -20,21 +21,22 @@ gammaRatio = (5.5./0.1)./(4./alphaRef);
 xlimGamma = [gammaRatio(1)-0.3,gammaRatio(end)+0.3];
 
 figure('Position',imPosition),
-% errorbar(gammaRatio,baAdmm,baStdAdmm, 'LineWidth',lineWidth)
-% hold on
-% errorbar(gammaRatio,baIus,baStdIus, 'LineWidth',lineWidth)
-errorbar(alphaRef,baAdmm,baStdAdmm, 'LineWidth',lineWidth)
+errorbar(gammaRatio,baAdmm,baStdAdmm, 'LineWidth',lineWidth)
 hold on
-errorbar(alphaRef,baIus,baStdIus, 'LineWidth',lineWidth)
+errorbar(gammaRatio,baIus,baStdIus, 'LineWidth',lineWidth)
+% errorbar(alphaRef,baAdmm,baStdAdmm, 'LineWidth',lineWidth)
+% hold on
+% errorbar(alphaRef,baIus,baStdIus, 'LineWidth',lineWidth)
 hold off, grid on
 yline(9,'k--')
 title('Uniform media')
 ylabel('B/A')
-xlabel('\alpha_0 [dB/cm/MHz^2]')
+% xlabel('\alpha_0 [dB/cm/MHz^2]')
+xlabel('\Gamma_{s}/\Gamma_{r}')
 legend(legendCell, 'Location',legendLoc)
-% xlim(xlimGamma)
+xlim(xlimGamma)
 fontsize(fontSize,"points")
-ylim([5 17])
+ylim(baLim)
 
 acAdmm = T(method=='ADMM',:).acMean;
 acStdAdmm = T(method=='ADMM',:).acStd;
@@ -42,25 +44,29 @@ acIus = T(method=='IUS',:).acMean;
 acStdIus = T(method=='IUS',:).acStd;
 
 figure('Position',imPosition),
-% errorbar(gammaRatio,acAdmm,acStdAdmm, 'LineWidth',lineWidth)
-% hold on
-% errorbar(gammaRatio,acIus,acStdIus, 'LineWidth',lineWidth)
-errorbar(alphaRef,acAdmm,acStdAdmm, 'LineWidth',lineWidth)
+errorbar(gammaRatio,acAdmm,acStdAdmm, 'LineWidth',lineWidth)
 hold on
-errorbar(alphaRef,acIus,acStdIus, 'LineWidth',lineWidth)
+errorbar(gammaRatio,acIus,acStdIus, 'LineWidth',lineWidth)
+% errorbar(alphaRef,acAdmm,acStdAdmm, 'LineWidth',lineWidth)
+% hold on
+% errorbar(alphaRef,acIus,acStdIus, 'LineWidth',lineWidth)
 hold off, grid on
 yline(0.1,'k--')
 title('Uniform media')
 ylabel('\alpha [dB/cm/MHz^2]')
-xlabel('\alpha_0 [dB/cm/MHz^2]')
+% xlabel('\alpha_0 [dB/cm/MHz^2]')
+xlabel('\Gamma_{s}/\Gamma_{r}')
 legend(legendCell, 'Location',legendLoc)
-% xlim(xlimGamma)
+xlim(xlimGamma)
 fontsize(fontSize,"points")
+ylim(acLim)
 
 %% Homogeneous data
-tFile = fullfile(baseDir,'homoBA12','homoRef.xlsx');
+tFile = fullfile(baseDir,'newSimulation','homoBA12','homoRef.xlsx');
 T = readtable(tFile);
 method = categorical(T.method);
+baLim = [5 19];
+acLim = [0 0.35];
 
 baAdmm = T(method=='ADMM',:).baMean;
 baStdAdmm = T(method=='ADMM',:).baStd;
@@ -82,7 +88,7 @@ xlabel('\Gamma_{s}/\Gamma_{r}')
 % legend(legendCell, 'Location',legendLoc)
 xlim(xlimGamma)
 fontsize(fontSize,"points")
-ylim([6 21])
+ylim(baLim)
 
 acAdmm = T(method=='ADMM',:).acMean;
 acStdAdmm = T(method=='ADMM',:).acStd;
@@ -101,7 +107,7 @@ xlabel('\Gamma_{s}/\Gamma_{r}')
 % legend(legendCell, 'Location',legendLoc)
 xlim(xlimGamma)
 fontsize(fontSize,"points")
-
+ylim(acLim)
 
 %% BA6inc9, reference from uniformBA_inclusionACS
 baLim = [2 16];
